@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    const studioLayout = document.getElementById('studio-layout');
+    const studioDashboard = document.getElementById('studio-dashboard');
     const detailPanel = document.getElementById('detail-panel');
-    const detailContent = document.getElementById('detail-content'); // אזור הגלילה
+    const detailContent = document.getElementById('detail-content');
     const closePanelBtn = document.getElementById('close-panel-btn');
     const detailTitle = document.getElementById('detail-title');
     const detailCategory = document.getElementById('detail-category');
@@ -14,28 +14,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const favoritesToggleBtn = document.getElementById('favorites-toggle-btn');
     const loadingMessage = document.getElementById('loading-message');
+    const panelPlaceholders = document.querySelectorAll('#detail-content .detail-placeholder'); // כל הפלייסהולדרים בפאנל
 
     // --- State ---
-    let favorites = JSON.parse(localStorage.getItem('aiLndFavorites_v2')) || []; // מפתח חדש למניעת התנגשות
+    let favorites = JSON.parse(localStorage.getItem('aiLndFavorites_v2')) || [];
     let currentUseCaseId = null;
     let showingFavorites = false;
     let allCards = []; // מערך לשמירת כל אלמנטי הכרטיסיות
 
     // --- Data Check ---
     if (typeof aiUseCases === 'undefined' || !Array.isArray(aiUseCases) || aiUseCases.length === 0) {
-        console.error("שגיאה: נתוני aiUseCases לא נטענו או שהקובץ data.js ריק / שגוי.");
-        if (loadingMessage) {
-            loadingMessage.textContent = 'שגיאה בטעינת נתוני השימושים. אנא בדוק את קובץ data.js.';
-            loadingMessage.style.color = 'red';
-        }
-        return; // עצירת הרצת שאר הסקריפט
+        handleLoadError('שגיאה: נתוני aiUseCases לא נטענו או שקובץ data.js ריק / שגוי.');
+        return;
     }
 
     // --- Constants & Initial Setup ---
-    const CATEGORIES = [...new Set(aiUseCases.map(uc => uc.category))]; // רשימת קטגוריות ייחודיות
-    const NUM_CATEGORY_COLORS = 8; // מספר הצבעים שהגדרנו ב-CSS
-     // אייקונים לקטגוריות (דוגמה, ניתן להרחיב או לשנות)
-    const CATEGORY_ICONS = {
+    const CATEGORIES = [...new Set(aiUseCases.map(uc => uc.category).filter(Boolean))]; // רשימת קטגוריות ייחודיות (ללא ריקים)
+     // אייקונים לקטגוריות (מפתח: שם הקטגוריה, ערך: אמוג'י)
+     const CATEGORY_ICONS = {
         "יצירת תוכן לימודי": "📝",
         "הערכה ומדידה": "📊",
         "התאמה אישית (פרסונליזציה)": "⚙️",
@@ -46,33 +42,47 @@ document.addEventListener('DOMContentLoaded', () => {
         "ניתוח נתונים וקבלת החלטות": "📈",
         "מיומנויות רכות ותרבות ארגונית": "👥",
         "דיגיטציה והטמעת טכנולוגיה": "💻",
-        "גיוס וקליטה": "🤝",
+        "גיוס וקליטה": "🤝", // שם קטגוריה קצר יותר
         "ניהול ושימור ידע ארגוני": "💾",
         "למידה מתמשכת ופיתוח קריירה": "🚀",
         "מודלים פדגוגיים מתקדמים": "🎓",
         "AI ייעודי להדרכה": "🤖",
         "יצירתיות, חדשנות ותכנון אסטרטגי": "💡",
-        "תמיכה והכלה": "❤️",
-        "ניהול פרויקטים והכשרת סגל": "📋",
-        "שימושים מתקדמים ועתידיים": "🔮"
-        // ברירת מחדל אם אין התאמה
+        "תמיכה והכלה": "❤️", // שם קטגוריה קצר יותר
+        "ניהול פרויקטים והכשרת סגל": "📋", // שם קטגוריה קצר יותר
+        "שימושים מתקדמים ועתידיים": "🔮",
+        "אחר": "✨" // ברירת מחדל
     };
     const DEFAULT_ICON = "✨";
+    // קבלת צבעי הקטגוריות מה-CSS (אם הוגדרו)
+    const cssVariables = getComputedStyle(document.documentElement);
+    const categoryColors = Array.from({ length: 8 }, (_, i) => cssVariables.getPropertyValue(`--cat-color-${i + 1}`).trim());
+    const DEFAULT_CATEGORY_COLOR = cssVariables.getPropertyValue('--primary-accent').trim(); // צבע ברירת מחדל
+
 
     // --- Functions ---
 
+    function handleLoadError(message) {
+        console.error(message);
+        if (loadingMessage) {
+            loadingMessage.textContent = message;
+            loadingMessage.style.color = 'red';
+            loadingMessage.style.display = 'block'; // ודא שהוא נראה
+        }
+    }
+
     // יצירת מבנה הסטודיו והכרטיסיות
-    function renderStudioLayout() {
-        if (!studioLayout) {
-            console.error("Element #studio-layout not found!");
+    function renderStudioDashboard() {
+        if (!studioDashboard) {
+            console.error("Element #studio-dashboard not found!");
             return;
         }
-        studioLayout.innerHTML = ''; // ניקוי קודם
-        allCards = []; // איפוס מערך הכרטיסיות
+        studioDashboard.innerHTML = ''; // ניקוי קודם
+        allCards = [];
 
         // קיבוץ השימושים לפי קטגוריה
         const groupedUseCases = aiUseCases.reduce((acc, useCase) => {
-            const category = useCase.category || 'אחר'; // קטגורית ברירת מחדל
+            const category = useCase.category || 'אחר';
             if (!acc[category]) {
                 acc[category] = [];
             }
@@ -80,48 +90,53 @@ document.addEventListener('DOMContentLoaded', () => {
             return acc;
         }, {});
 
-        // יצירת סקשן לכל קטגוריה
+        // יצירת אזור לכל קטגוריה
         CATEGORIES.forEach((category, index) => {
-            if (!groupedUseCases[category] || groupedUseCases[category].length === 0) {
-                return; // דלג על קטגוריות ריקות
-            }
+            if (!groupedUseCases[category] || groupedUseCases[category].length === 0) return;
 
-            const categorySection = document.createElement('section');
-            categorySection.classList.add('category-section');
-
-            // קביעת צבע הגבול העליון
-            const categoryColorIndex = (index % NUM_CATEGORY_COLORS) + 1;
-            categorySection.dataset.categoryColor = categoryColorIndex;
+            const categoryZone = document.createElement('div');
+            categoryZone.classList.add('category-zone');
+            categoryZone.style.setProperty('--category-color', categoryColors[index % categoryColors.length] || DEFAULT_CATEGORY_COLOR); // הגדרת משתנה CSS מקומי לצבע
+            categoryZone.style.borderTopColor = categoryColors[index % categoryColors.length] || DEFAULT_CATEGORY_COLOR; // קביעת צבע הגבול
 
             // הוספת כותרת הקטגוריה עם אייקון
-            const categoryTitle = document.createElement('h2');
+            const categoryHeader = document.createElement('div');
+            categoryHeader.classList.add('category-header');
+
             const iconSpan = document.createElement('span');
             iconSpan.classList.add('category-icon');
-            iconSpan.textContent = CATEGORY_ICONS[category] || DEFAULT_ICON; // שימוש באייקון או ברירת מחדל
-            categoryTitle.appendChild(iconSpan);
-            categoryTitle.appendChild(document.createTextNode(category)); // הוספת טקסט הכותרת
-            categorySection.appendChild(categoryTitle);
+            iconSpan.setAttribute('aria-hidden', 'true'); // מטעמי נגישות
+            iconSpan.textContent = CATEGORY_ICONS[category] || DEFAULT_ICON;
+            iconSpan.style.color = categoryColors[index % categoryColors.length] || DEFAULT_CATEGORY_COLOR; // צביעת האייקון
 
-            // יצירת מיכל לכרטיסיות
-            const cardContainer = document.createElement('div');
-            cardContainer.classList.add('card-container');
+            const categoryTitle = document.createElement('h2');
+            categoryTitle.classList.add('category-title');
+            categoryTitle.textContent = category;
+            categoryTitle.style.color = categoryColors[index % categoryColors.length] || DEFAULT_CATEGORY_COLOR; // צביעת הכותרת
+
+            categoryHeader.appendChild(iconSpan);
+            categoryHeader.appendChild(categoryTitle);
+            categoryZone.appendChild(categoryHeader);
+
+            // יצירת גריד לכרטיסיות
+            const cardGrid = document.createElement('div');
+            cardGrid.classList.add('card-grid');
 
             // יצירת כרטיסייה לכל שימוש בקטגוריה
             groupedUseCases[category].forEach(useCase => {
                 const card = createInspirationCard(useCase);
-                cardContainer.appendChild(card);
-                allCards.push(card); // הוספה למערך הכללי
+                cardGrid.appendChild(card);
+                allCards.push(card);
             });
 
-            categorySection.appendChild(cardContainer);
-            studioLayout.appendChild(categorySection);
+            categoryZone.appendChild(cardGrid);
+             // הגדרת השהיית אנימציה
+             categoryZone.style.animationDelay = `${0.1 + index * 0.05}s`;
+            studioDashboard.appendChild(categoryZone);
         });
 
-         // הסרת הודעת הטעינה
-        if(loadingMessage) loadingMessage.style.display = 'none';
-
-        // עדכון ויזואלי ראשוני לאחר יצירת הכרטיסיות
-        updateCardsVisualState();
+        if (loadingMessage) loadingMessage.style.display = 'none';
+        updateCardsVisualState(); // עדכון ראשוני
     }
 
     // יצירת אלמנט כרטיסייה בודדת
@@ -130,10 +145,11 @@ document.addEventListener('DOMContentLoaded', () => {
         card.classList.add('inspiration-card');
         card.dataset.id = useCase.id;
         card.dataset.category = useCase.category || 'אחר';
+        card.setAttribute('role', 'button'); // נגישות
+        card.setAttribute('tabindex', '0'); // מאפשר מיקוד מהמקלדת
 
-        // כותרת הכרטיסיה (ID + Title)
-        const cardHeader = document.createElement('div');
-        cardHeader.classList.add('card-header');
+        const cardContent = document.createElement('div');
+        cardContent.classList.add('card-content');
 
         const cardId = document.createElement('span');
         cardId.classList.add('card-id');
@@ -143,55 +159,75 @@ document.addEventListener('DOMContentLoaded', () => {
         cardTitle.classList.add('card-title');
         cardTitle.textContent = useCase.title;
 
+        cardContent.appendChild(cardId);
+        cardContent.appendChild(cardTitle);
+        card.appendChild(cardContent);
+
+        // מחוון מועדף (מוסתר בהתחלה)
         const favoriteIndicator = document.createElement('span');
         favoriteIndicator.classList.add('card-favorite-indicator');
-        favoriteIndicator.textContent = '⭐'; // כוכב קטן
+        favoriteIndicator.setAttribute('aria-hidden', 'true');
+        favoriteIndicator.textContent = '⭐';
+        card.appendChild(favoriteIndicator);
 
-        cardHeader.appendChild(cardId);
-        cardHeader.appendChild(cardTitle);
-        cardHeader.appendChild(favoriteIndicator); // הוספת הכוכב הקטן
-
-        card.appendChild(cardHeader);
-
-        // הוספת מאזין לחיצה לפתיחת פרטים
+        // מאזיני אירועים
         card.addEventListener('click', () => showDetails(useCase.id));
+        card.addEventListener('keydown', (e) => { // נגישות מקלדת
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault(); // למנוע גלילה עם מקש רווח
+                showDetails(useCase.id);
+            }
+        });
 
         return card;
     }
 
-
-    // הצגת פאנל הפרטים (דומה לקודם)
+    // הצגת פאנל פרטים עם אפקט טעינה
     function showDetails(id) {
         const useCase = aiUseCases.find(uc => uc.id === id);
-        if (!useCase) {
-            console.error(`לא נמצא שימוש עם ID=${id}`);
-            return;
-        }
+        if (!useCase) return;
 
+        // הצגת מצב טעינה בפאנל
+        panelPlaceholders.forEach(el => el.style.display = 'block');
+        detailTitle.textContent = '';
+        detailCategory.textContent = '';
+        detailDescription.textContent = '';
+        detailExample.textContent = '';
+        relatedContainer.style.display = 'none';
+        favoriteBtn.style.opacity = 0; // הסתרת הכפתור בזמן טעינה
+
+        detailPanel.setAttribute('aria-hidden', 'false');
+        detailPanel.classList.add('visible');
+        detailContent.scrollTop = 0;
         currentUseCaseId = id;
 
+        // הדמיית טעינה קלה (אפשר להסיר אם רוצים טעינה מיידית)
+        setTimeout(() => {
+            populatePanelContent(useCase);
+            // הסתרת מצב טעינה
+            panelPlaceholders.forEach(el => el.style.display = 'none');
+            favoriteBtn.style.opacity = 1;
+        }, 150); // השהייה קצרה לאפקט
+    }
+
+     // מילוי תוכן הפאנל
+     function populatePanelContent(useCase) {
         detailTitle.textContent = `${useCase.id}. ${useCase.title}`;
         detailCategory.textContent = useCase.category || 'לא ידוע';
         detailDescription.textContent = useCase.description || 'אין תיאור זמין.';
         detailExample.textContent = useCase.example || 'אין דוגמה זמינה.';
 
-        // עדכון צבע הקטגוריה בפאנל
+        // צבע קטגוריה (לדוגמה: צבע הרקע של ה-span)
         const categoryIndex = CATEGORIES.indexOf(useCase.category);
-        if (categoryIndex >= 0) {
-            const categoryColorIndex = (categoryIndex % NUM_CATEGORY_COLORS) + 1;
-            detailCategory.style.color = `var(--cat-color-${categoryColorIndex + 10})`; // נשתמש בצבע כהה יותר של הקטגוריה אם קיים, או נצטרך להגדיר
-             // אם אין צבעים כהים, אפשר להשתמש ב-var(--primary-color) או צבע קבוע
-             detailCategory.style.color = '#555'; // שינוי לצבע אפור כהה קבוע
-        } else {
-            detailCategory.style.color = '#555';
-        }
+        const categoryColor = categoryColors[categoryIndex % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
+        // detailCategory.parentElement.style.borderLeftColor = categoryColor; // אפשרות להדגשת קטגוריה
+         detailCategory.style.color = categoryColor; // שימוש בצבע לכותרת הקטגוריה
 
 
-        // מילוי רשימת שימושים קשורים
+        // שימושים קשורים
         relatedList.innerHTML = '';
+        let foundRelated = false;
         if (useCase.related && Array.isArray(useCase.related) && useCase.related.length > 0) {
-            relatedContainer.style.display = 'block';
-            let foundRelated = false;
             useCase.related.forEach(relatedId => {
                 const relatedUseCase = aiUseCases.find(uc => uc.id === relatedId);
                 if (relatedUseCase) {
@@ -200,38 +236,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     const link = document.createElement('a');
                     link.textContent = `${relatedUseCase.id}. ${relatedUseCase.title}`;
                     link.href = "#";
-                    link.onclick = (e) => {
-                        e.preventDefault();
-                        showDetails(relatedId);
-                    };
+                    link.onclick = (e) => { e.preventDefault(); showDetails(relatedId); };
+                    link.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showDetails(relatedId); } };
                     li.appendChild(link);
                     relatedList.appendChild(li);
                 }
             });
-             if (!foundRelated) relatedContainer.style.display = 'none';
-        } else {
-             relatedContainer.style.display = 'none';
         }
+        relatedContainer.style.display = foundRelated ? 'block' : 'none';
 
         updateFavoriteButton(id);
-        detailPanel.classList.add('visible');
-        detailContent.scrollTop = 0;
-    }
+     }
+
 
     // הסתרת פאנל הפרטים
     function hideDetails() {
         detailPanel.classList.remove('visible');
+        detailPanel.setAttribute('aria-hidden', 'true');
         currentUseCaseId = null;
     }
 
     // עדכון מראה כפתור המועדפים בפאנל
     function updateFavoriteButton(id) {
          if (favorites.includes(id)) {
-            favoriteBtn.innerHTML = '⭐ הוסר מהמועדפים'; // שימוש ב-innerHTML כדי להציג את הכוכב
+            favoriteBtn.innerHTML = '⭐ הוסר מהמועדפים';
             favoriteBtn.classList.add('is-favorite');
+            favoriteBtn.setAttribute('aria-label', 'הסר מהמועדפים');
         } else {
             favoriteBtn.innerHTML = '⭐ הוסף למועדפים';
             favoriteBtn.classList.remove('is-favorite');
+            favoriteBtn.setAttribute('aria-label', 'הוסף למועדפים');
         }
     }
 
@@ -239,10 +273,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleFavorite() {
         if (currentUseCaseId === null) return;
         const index = favorites.indexOf(currentUseCaseId);
+        const cardElement = allCards.find(card => parseInt(card.dataset.id) === currentUseCaseId);
+
         if (index > -1) {
             favorites.splice(index, 1);
+            if(cardElement) cardElement.classList.remove('is-favorite');
         } else {
             favorites.push(currentUseCaseId);
+             if(cardElement) cardElement.classList.add('is-favorite');
         }
         try {
              localStorage.setItem('aiLndFavorites_v2', JSON.stringify(favorites));
@@ -250,13 +288,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("שגיאה בשמירת מועדפים:", e);
         }
         updateFavoriteButton(currentUseCaseId);
-        updateCardsVisualState(); // עדכון מראה הכרטיסיות
+        // אין צורך לקרוא ל-updateCardsVisualState כאן אם רק משנים את הקלאס בכרטיסיה הספציפית
     }
 
-    // עדכון מצב ויזואלי של כל הכרטיסיות (מועדפים, חיפוש, סינון)
+    // עדכון מצב ויזואלי של כל הכרטיסיות והקטגוריות
     function updateCardsVisualState() {
         const searchTerm = searchInput.value.toLowerCase().trim();
-        let hasVisibleCards = false; // לבדוק אם יש מה להציג
+        let hasVisibleCardsOverall = false;
 
         allCards.forEach(card => {
             const id = parseInt(card.dataset.id);
@@ -264,55 +302,48 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!useCase) return;
 
             const isFavorite = favorites.includes(id);
-            card.classList.toggle('is-favorite', isFavorite); // עדכון הקלאס להצגת הכוכב בכרטיסיה
+            card.classList.toggle('is-favorite', isFavorite);
 
-            // בדיקת התאמה לחיפוש
             const isMatch = searchTerm === '' ||
                             useCase.title.toLowerCase().includes(searchTerm) ||
-                            useCase.description.toLowerCase().includes(searchTerm) ||
-                            useCase.example.toLowerCase().includes(searchTerm) ||
-                            useCase.category.toLowerCase().includes(searchTerm) ||
+                            (useCase.description && useCase.description.toLowerCase().includes(searchTerm)) ||
+                            (useCase.example && useCase.example.toLowerCase().includes(searchTerm)) ||
+                            (useCase.category && useCase.category.toLowerCase().includes(searchTerm)) ||
                             useCase.id.toString() === searchTerm;
 
-            // קביעת נראות הכרטיסיה
             const shouldBeVisible = isMatch && (!showingFavorites || isFavorite);
-            card.style.display = shouldBeVisible ? '' : 'none'; // הצג/הסתר כרטיסיה
 
-             // הדגשה
-            if (shouldBeVisible && searchTerm !== '') {
-                 card.classList.add('highlight');
-            } else {
-                 card.classList.remove('highlight');
-            }
+            card.style.display = shouldBeVisible ? '' : 'none';
+            card.classList.toggle('highlight', shouldBeVisible && searchTerm !== '');
+            card.classList.remove('dimmed'); // הסרת עימעום ישן אם יש
 
             if (shouldBeVisible) {
-                hasVisibleCards = true; // מצאנו לפחות כרטיסיה אחת להצגה
+                hasVisibleCardsOverall = true;
             }
         });
 
-         // הצגת/הסתרת קטגוריות שלמות אם הן ריקות אחרי סינון
-         document.querySelectorAll('.category-section').forEach(section => {
-             const visibleCardsInSection = section.querySelectorAll('.inspiration-card:not([style*="display: none"])');
-             section.style.display = visibleCardsInSection.length > 0 ? '' : 'none';
-         });
-
+        // הצגת/הסתרת קטגוריות ריקות
+        document.querySelectorAll('.category-zone').forEach(zone => {
+            const visibleCardsInSection = zone.querySelectorAll('.inspiration-card:not([style*="display: none"])');
+            zone.style.display = visibleCardsInSection.length > 0 ? '' : 'none';
+        });
 
         // הצגת הודעה אם אין תוצאות
-        if (!hasVisibleCards && studioLayout) {
-             let noResultsMsg = studioLayout.querySelector('.no-results');
+         const noResultsMsg = studioDashboard.querySelector('.no-results-message');
+         if (!hasVisibleCardsOverall) {
              if (!noResultsMsg) {
-                noResultsMsg = document.createElement('p');
-                noResultsMsg.classList.add('no-results', 'loading'); // שימוש חוזר בקלאס loading לעיצוב
-                studioLayout.appendChild(noResultsMsg);
+                 const msgElement = document.createElement('p');
+                 msgElement.classList.add('no-results-message', 'loading-message'); // שימוש חוזר בעיצוב
+                 msgElement.textContent = showingFavorites ? "אין מועדפים להצגה." : "לא נמצאו שימושים התואמים את החיפוש.";
+                 studioDashboard.appendChild(msgElement);
+             } else {
+                 noResultsMsg.textContent = showingFavorites ? "אין מועדפים להצגה." : "לא נמצאו שימושים התואמים את החיפוש.";
+                 noResultsMsg.style.display = 'block';
              }
-             noResultsMsg.textContent = showingFavorites ? "אין מועדפים להצגה." : "לא נמצאו שימושים התואמים את החיפוש.";
-             noResultsMsg.style.display = 'block';
-        } else {
-            const noResultsMsg = studioLayout.querySelector('.no-results');
-            if (noResultsMsg) noResultsMsg.style.display = 'none';
-        }
+         } else {
+             if (noResultsMsg) noResultsMsg.remove(); // הסרת ההודעה אם יש תוצאות
+         }
     }
-
 
     // טיפול בחיפוש
     function handleSearch() {
@@ -323,15 +354,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleFavoritesView() {
         showingFavorites = !showingFavorites;
         favoritesToggleBtn.classList.toggle('active', showingFavorites);
-        updateCardsVisualState(); // עדכון המראה
+        updateCardsVisualState();
 
-         if(showingFavorites) {
+        if(showingFavorites) {
             favoritesToggleBtn.title = "הצג את כל השימושים";
+            favoritesToggleBtn.setAttribute('aria-label', 'הצג את כל השימושים');
          } else {
             favoritesToggleBtn.title = "הצג מועדפים בלבד";
+            favoritesToggleBtn.setAttribute('aria-label', 'הצג מועדפים בלבד');
          }
     }
-
 
     // --- Event Listeners ---
     closePanelBtn.addEventListener('click', hideDetails);
@@ -339,24 +371,30 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', handleSearch); // חיפוש בזמן אמת
     favoritesToggleBtn.addEventListener('click', toggleFavoritesView);
 
-    // סגירת הפאנל בלחיצה מחוצה לו (נשאר דומה)
+    // סגירת הפאנל בלחיצה מחוצה לו
     document.addEventListener('click', (event) => {
         if (!detailPanel.classList.contains('visible')) return;
-        const clickedInsidePanel = detailPanel.contains(event.target);
-        // שינוי קטן: בדוק אם הלחיצה הייתה על כרטיסיה, לא רק כוכב
-        const clickedOnCard = event.target.closest('.inspiration-card');
-        if (!clickedInsidePanel && !clickedOnCard) {
+        // בדיקה אם הלחיצה היא *מחוץ* לפאנל עצמו
+        if (!detailPanel.contains(event.target)) {
              hideDetails();
         }
     });
-
-     // --- Initial Render ---
-     window.addEventListener('load', () => {
-          renderStudioLayout();
+     // סגירת הפאנל במקש Escape
+     document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && detailPanel.classList.contains('visible')) {
+            hideDetails();
+        }
      });
 
 
-    // טיפול בשינוי גודל חלון - אין צורך ברינדור מחדש בגלל CSS Grid/Flexbox
-    // (אלא אם יש לוגיקה מורכבת שתלויה בגודל)
+    // --- Initial Render ---
+    // רינדור ראשוני רק אחרי טעינת כל המשאבים
+    window.addEventListener('load', () => {
+        if (typeof aiUseCases !== 'undefined' && aiUseCases.length > 0) {
+            renderStudioDashboard();
+        } else {
+            // הודעת השגיאה כבר טופלה בבדיקת הנתונים
+        }
+    });
 
-});
+}); // End of DOMContentLoaded
