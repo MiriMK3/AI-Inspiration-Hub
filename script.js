@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    const nebulaContainer = document.getElementById('nebula-container');
+    const studioLayout = document.getElementById('studio-layout');
     const detailPanel = document.getElementById('detail-panel');
     const detailContent = document.getElementById('detail-content'); // אזור הגלילה
     const closePanelBtn = document.getElementById('close-panel-btn');
@@ -9,98 +9,158 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailDescription = document.getElementById('detail-description');
     const detailExample = document.getElementById('detail-example');
     const relatedList = document.getElementById('related-list');
-    const relatedContainer = document.getElementById('related-container'); // מיכל השימושים הקשורים
+    const relatedContainer = document.getElementById('related-container');
     const favoriteBtn = document.getElementById('favorite-btn');
     const searchInput = document.getElementById('search-input');
     const favoritesToggleBtn = document.getElementById('favorites-toggle-btn');
+    const loadingMessage = document.getElementById('loading-message');
 
     // --- State ---
-    let favorites = JSON.parse(localStorage.getItem('aiLndFavorites')) || [];
+    let favorites = JSON.parse(localStorage.getItem('aiLndFavorites_v2')) || []; // מפתח חדש למניעת התנגשות
     let currentUseCaseId = null;
     let showingFavorites = false;
+    let allCards = []; // מערך לשמירת כל אלמנטי הכרטיסיות
 
     // --- Data Check ---
     if (typeof aiUseCases === 'undefined' || !Array.isArray(aiUseCases) || aiUseCases.length === 0) {
         console.error("שגיאה: נתוני aiUseCases לא נטענו או שהקובץ data.js ריק / שגוי.");
-        // אפשר להציג הודעה למשתמש במקום כוכבים
-        nebulaContainer.innerHTML = '<p style="color: white; text-align: center; margin-top: 50px;">שגיאה בטעינת נתוני השימושים. אנא בדוק את קובץ data.js.</p>';
+        if (loadingMessage) {
+            loadingMessage.textContent = 'שגיאה בטעינת נתוני השימושים. אנא בדוק את קובץ data.js.';
+            loadingMessage.style.color = 'red';
+        }
         return; // עצירת הרצת שאר הסקריפט
     }
 
-
-    // --- Constants ---
+    // --- Constants & Initial Setup ---
     const CATEGORIES = [...new Set(aiUseCases.map(uc => uc.category))]; // רשימת קטגוריות ייחודיות
-    const NUM_CATEGORIES = CATEGORIES.length;
     const NUM_CATEGORY_COLORS = 8; // מספר הצבעים שהגדרנו ב-CSS
-    const PADDING = 80; // ריווח משולי המיכל
+     // אייקונים לקטגוריות (דוגמה, ניתן להרחיב או לשנות)
+    const CATEGORY_ICONS = {
+        "יצירת תוכן לימודי": "📝",
+        "הערכה ומדידה": "📊",
+        "התאמה אישית (פרסונליזציה)": "⚙️",
+        "ניהול ידע ומאגרי מידע": "📚",
+        "פיתוח חומרי עזר": "🛠️",
+        "הנגשת מידע": "🌐",
+        "תקשורת, מעורבות והטמעה": "💬",
+        "ניתוח נתונים וקבלת החלטות": "📈",
+        "מיומנויות רכות ותרבות ארגונית": "👥",
+        "דיגיטציה והטמעת טכנולוגיה": "💻",
+        "גיוס וקליטה": "🤝",
+        "ניהול ושימור ידע ארגוני": "💾",
+        "למידה מתמשכת ופיתוח קריירה": "🚀",
+        "מודלים פדגוגיים מתקדמים": "🎓",
+        "AI ייעודי להדרכה": "🤖",
+        "יצירתיות, חדשנות ותכנון אסטרטגי": "💡",
+        "תמיכה והכלה": "❤️",
+        "ניהול פרויקטים והכשרת סגל": "📋",
+        "שימושים מתקדמים ועתידיים": "🔮"
+        // ברירת מחדל אם אין התאמה
+    };
+    const DEFAULT_ICON = "✨";
 
     // --- Functions ---
 
-    // יצירה ומיקום הכוכבים
-    function renderNebula() {
-        nebulaContainer.innerHTML = ''; // ניקוי קודם
-        const containerWidth = nebulaContainer.clientWidth - PADDING * 2;
-        const containerHeight = nebulaContainer.clientHeight - PADDING * 2;
-
-        if (containerWidth <= 0 || containerHeight <= 0) {
-             console.warn("מיכל הערפילית קטן מדי או לא נראה, לא ניתן לרנדר כוכבים.");
-             setTimeout(renderNebula, 100); // נסה שוב אחרי רגע קט
-             return;
+    // יצירת מבנה הסטודיו והכרטיסיות
+    function renderStudioLayout() {
+        if (!studioLayout) {
+            console.error("Element #studio-layout not found!");
+            return;
         }
+        studioLayout.innerHTML = ''; // ניקוי קודם
+        allCards = []; // איפוס מערך הכרטיסיות
 
-        aiUseCases.forEach((useCase) => {
-            const starEl = document.createElement('div');
-            starEl.classList.add('star');
-            starEl.dataset.id = useCase.id;
-            starEl.textContent = useCase.id; // הצגת המספר על הכוכב
+        // קיבוץ השימושים לפי קטגוריה
+        const groupedUseCases = aiUseCases.reduce((acc, useCase) => {
+            const category = useCase.category || 'אחר'; // קטגורית ברירת מחדל
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+            acc[category].push(useCase);
+            return acc;
+        }, {});
 
-            // קביעת צבע לפי קטגוריה
-            const categoryIndex = CATEGORIES.indexOf(useCase.category);
-            // ודא ש-categoryIndex תקין לפני שימוש במודולו
-            if (categoryIndex >= 0) {
-                 const categoryColorIndex = (categoryIndex % NUM_CATEGORY_COLORS) + 1;
-                 starEl.dataset.categoryColor = categoryColorIndex;
-            } else {
-                console.warn(`קטגוריה לא נמצאה עבור שימוש ${useCase.id}: ${useCase.category}`);
-                starEl.dataset.categoryColor = 1; // ברירת מחדל אם הקטגוריה לא תקינה
+        // יצירת סקשן לכל קטגוריה
+        CATEGORIES.forEach((category, index) => {
+            if (!groupedUseCases[category] || groupedUseCases[category].length === 0) {
+                return; // דלג על קטגוריות ריקות
             }
 
+            const categorySection = document.createElement('section');
+            categorySection.classList.add('category-section');
 
-            // מיקום אקראי בסיסי (ניתן לשפר לפי קטגוריות)
-            let top = PADDING + Math.random() * containerHeight;
-            let left = PADDING + Math.random() * containerWidth;
+            // קביעת צבע הגבול העליון
+            const categoryColorIndex = (index % NUM_CATEGORY_COLORS) + 1;
+            categorySection.dataset.categoryColor = categoryColorIndex;
 
-            // שיפור קל לקיבוץ ויזואלי: דחיפה קלה לכיוון מסוים לפי קטגוריה
-             if (categoryIndex >= 0 && NUM_CATEGORIES > 0) {
-                 const angle = (categoryIndex / NUM_CATEGORIES) * 2 * Math.PI;
-                 const pushFactor = 0.1; // עד כמה לדחוף מהמרכז
-                 // מרכז המיכל
-                 const centerX = containerWidth / 2 + PADDING;
-                 const centerY = containerHeight / 2 + PADDING;
-                 // דחיפה רדיאלית החוצה מהמרכז לכיוון זווית הקטגוריה
-                 const pushDistance = Math.min(containerWidth, containerHeight) * pushFactor * (Math.random() * 0.5 + 0.5);
-                 left = centerX + Math.cos(angle) * pushDistance + (Math.random() - 0.5) * 50; // הוספת אקראיות קלה
-                 top = centerY + Math.sin(angle) * pushDistance + (Math.random() - 0.5) * 50; // הוספת אקראיות קלה
-             }
+            // הוספת כותרת הקטגוריה עם אייקון
+            const categoryTitle = document.createElement('h2');
+            const iconSpan = document.createElement('span');
+            iconSpan.classList.add('category-icon');
+            iconSpan.textContent = CATEGORY_ICONS[category] || DEFAULT_ICON; // שימוש באייקון או ברירת מחדל
+            categoryTitle.appendChild(iconSpan);
+            categoryTitle.appendChild(document.createTextNode(category)); // הוספת טקסט הכותרת
+            categorySection.appendChild(categoryTitle);
 
-            // וידוא שהכוכב לא יוצא מהגבולות
-            top = Math.max(PADDING / 2, Math.min(top, containerHeight + PADDING * 1.5)); // מתיר קצת חריגה
-            left = Math.max(PADDING / 2, Math.min(left, containerWidth + PADDING * 1.5)); // מתיר קצת חריגה
+            // יצירת מיכל לכרטיסיות
+            const cardContainer = document.createElement('div');
+            cardContainer.classList.add('card-container');
 
+            // יצירת כרטיסייה לכל שימוש בקטגוריה
+            groupedUseCases[category].forEach(useCase => {
+                const card = createInspirationCard(useCase);
+                cardContainer.appendChild(card);
+                allCards.push(card); // הוספה למערך הכללי
+            });
 
-            starEl.style.top = `${top}px`;
-            starEl.style.left = `${left}px`;
-            starEl.setAttribute('title', `${useCase.id}. ${useCase.title}`); // Tooltip
-
-            starEl.addEventListener('click', () => showDetails(useCase.id));
-            nebulaContainer.appendChild(starEl);
+            categorySection.appendChild(cardContainer);
+            studioLayout.appendChild(categorySection);
         });
-        // עדכון ויזואלי ראשוני לאחר יצירת הכוכבים
-        updateFavoritesVisuals();
-        handleSearch(); // החלת מסננים קיימים (חיפוש/מועדפים)
+
+         // הסרת הודעת הטעינה
+        if(loadingMessage) loadingMessage.style.display = 'none';
+
+        // עדכון ויזואלי ראשוני לאחר יצירת הכרטיסיות
+        updateCardsVisualState();
     }
 
-    // הצגת פאנל הפרטים
+    // יצירת אלמנט כרטיסייה בודדת
+    function createInspirationCard(useCase) {
+        const card = document.createElement('div');
+        card.classList.add('inspiration-card');
+        card.dataset.id = useCase.id;
+        card.dataset.category = useCase.category || 'אחר';
+
+        // כותרת הכרטיסיה (ID + Title)
+        const cardHeader = document.createElement('div');
+        cardHeader.classList.add('card-header');
+
+        const cardId = document.createElement('span');
+        cardId.classList.add('card-id');
+        cardId.textContent = useCase.id;
+
+        const cardTitle = document.createElement('h3');
+        cardTitle.classList.add('card-title');
+        cardTitle.textContent = useCase.title;
+
+        const favoriteIndicator = document.createElement('span');
+        favoriteIndicator.classList.add('card-favorite-indicator');
+        favoriteIndicator.textContent = '⭐'; // כוכב קטן
+
+        cardHeader.appendChild(cardId);
+        cardHeader.appendChild(cardTitle);
+        cardHeader.appendChild(favoriteIndicator); // הוספת הכוכב הקטן
+
+        card.appendChild(cardHeader);
+
+        // הוספת מאזין לחיצה לפתיחת פרטים
+        card.addEventListener('click', () => showDetails(useCase.id));
+
+        return card;
+    }
+
+
+    // הצגת פאנל הפרטים (דומה לקודם)
     function showDetails(id) {
         const useCase = aiUseCases.find(uc => uc.id === id);
         if (!useCase) {
@@ -108,54 +168,54 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        currentUseCaseId = id; // שמירת ה-ID הנוכחי
+        currentUseCaseId = id;
 
         detailTitle.textContent = `${useCase.id}. ${useCase.title}`;
-        detailCategory.textContent = useCase.category || 'לא ידוע'; // ערך ברירת מחדל
+        detailCategory.textContent = useCase.category || 'לא ידוע';
         detailDescription.textContent = useCase.description || 'אין תיאור זמין.';
         detailExample.textContent = useCase.example || 'אין דוגמה זמינה.';
 
-        // עדכון צבע קטגוריה בפאנל
+        // עדכון צבע הקטגוריה בפאנל
         const categoryIndex = CATEGORIES.indexOf(useCase.category);
-         if (categoryIndex >= 0) {
-             const categoryColorIndex = (categoryIndex % NUM_CATEGORY_COLORS) + 1;
-             detailCategory.style.color = `var(--cat-color-${categoryColorIndex})`;
-         } else {
-             detailCategory.style.color = 'var(--text-color)'; // צבע ברירת מחדל
-         }
+        if (categoryIndex >= 0) {
+            const categoryColorIndex = (categoryIndex % NUM_CATEGORY_COLORS) + 1;
+            detailCategory.style.color = `var(--cat-color-${categoryColorIndex + 10})`; // נשתמש בצבע כהה יותר של הקטגוריה אם קיים, או נצטרך להגדיר
+             // אם אין צבעים כהים, אפשר להשתמש ב-var(--primary-color) או צבע קבוע
+             detailCategory.style.color = '#555'; // שינוי לצבע אפור כהה קבוע
+        } else {
+            detailCategory.style.color = '#555';
+        }
 
 
         // מילוי רשימת שימושים קשורים
         relatedList.innerHTML = '';
         if (useCase.related && Array.isArray(useCase.related) && useCase.related.length > 0) {
             relatedContainer.style.display = 'block';
+            let foundRelated = false;
             useCase.related.forEach(relatedId => {
                 const relatedUseCase = aiUseCases.find(uc => uc.id === relatedId);
                 if (relatedUseCase) {
+                    foundRelated = true;
                     const li = document.createElement('li');
                     const link = document.createElement('a');
                     link.textContent = `${relatedUseCase.id}. ${relatedUseCase.title}`;
-                    link.href = "#"; // למנוע התנהגות קישור רגילה
+                    link.href = "#";
                     link.onclick = (e) => {
                         e.preventDefault();
-                        showDetails(relatedId); // פתיחת הפאנל של השימוש הקשור
+                        showDetails(relatedId);
                     };
                     li.appendChild(link);
                     relatedList.appendChild(li);
-                } else {
-                     console.warn(`שימוש קשור עם ID=${relatedId} לא נמצא עבור שימוש ${id}`);
                 }
             });
+             if (!foundRelated) relatedContainer.style.display = 'none';
         } else {
              relatedContainer.style.display = 'none';
         }
 
-
-        // עדכון כפתור מועדפים
         updateFavoriteButton(id);
-
         detailPanel.classList.add('visible');
-        detailContent.scrollTop = 0; // גלילה לראש הפאנל בפתיחה
+        detailContent.scrollTop = 0;
     }
 
     // הסתרת פאנל הפרטים
@@ -167,10 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // עדכון מראה כפתור המועדפים בפאנל
     function updateFavoriteButton(id) {
          if (favorites.includes(id)) {
-            favoriteBtn.textContent = '⭐ הוסר מהמועדפים';
+            favoriteBtn.innerHTML = '⭐ הוסר מהמועדפים'; // שימוש ב-innerHTML כדי להציג את הכוכב
             favoriteBtn.classList.add('is-favorite');
         } else {
-            favoriteBtn.textContent = '⭐ הוסף למועדפים';
+            favoriteBtn.innerHTML = '⭐ הוסף למועדפים';
             favoriteBtn.classList.remove('is-favorite');
         }
     }
@@ -178,34 +238,33 @@ document.addEventListener('DOMContentLoaded', () => {
      // הוספה/הסרה ממועדפים
     function toggleFavorite() {
         if (currentUseCaseId === null) return;
-
         const index = favorites.indexOf(currentUseCaseId);
         if (index > -1) {
-            favorites.splice(index, 1); // הסרה
+            favorites.splice(index, 1);
         } else {
-            favorites.push(currentUseCaseId); // הוספה
+            favorites.push(currentUseCaseId);
         }
-        // שמירה ב-localStorage
         try {
-             localStorage.setItem('aiLndFavorites', JSON.stringify(favorites));
+             localStorage.setItem('aiLndFavorites_v2', JSON.stringify(favorites));
         } catch (e) {
-            console.error("שגיאה בשמירת מועדפים ל-localStorage:", e);
-            // אפשר להציג הודעה למשתמש
+            console.error("שגיאה בשמירת מועדפים:", e);
         }
-
         updateFavoriteButton(currentUseCaseId);
-        updateFavoritesVisuals(); // עדכון מראה הכוכבים בערפילית
+        updateCardsVisualState(); // עדכון מראה הכרטיסיות
     }
 
-    // עדכון ויזואלי לכוכבים שהם מועדפים או מסוננים
-    function updateFavoritesVisuals() {
+    // עדכון מצב ויזואלי של כל הכרטיסיות (מועדפים, חיפוש, סינון)
+    function updateCardsVisualState() {
         const searchTerm = searchInput.value.toLowerCase().trim();
-        document.querySelectorAll('.star').forEach(starEl => {
-            const id = parseInt(starEl.dataset.id);
-            const isFavorite = favorites.includes(id);
-            const useCase = aiUseCases.find(uc => uc.id === id);
+        let hasVisibleCards = false; // לבדוק אם יש מה להציג
 
-             if (!useCase) return; // למקרה שלא נמצא מסיבה כלשהי
+        allCards.forEach(card => {
+            const id = parseInt(card.dataset.id);
+            const useCase = aiUseCases.find(uc => uc.id === id);
+            if (!useCase) return;
+
+            const isFavorite = favorites.includes(id);
+            card.classList.toggle('is-favorite', isFavorite); // עדכון הקלאס להצגת הכוכב בכרטיסיה
 
             // בדיקת התאמה לחיפוש
             const isMatch = searchTerm === '' ||
@@ -215,39 +274,56 @@ document.addEventListener('DOMContentLoaded', () => {
                             useCase.category.toLowerCase().includes(searchTerm) ||
                             useCase.id.toString() === searchTerm;
 
-             // קביעת מצב הדגשה
-            if (isFavorite && (!showingFavorites || isMatch) && searchTerm === '') {
-                // הדגשת מועדף רק אם אין חיפוש פעיל או אם הוא מתאים לחיפוש במצב "הכל"
-                 starEl.classList.add('highlight');
-             } else if (isMatch && searchTerm !== '' ) {
-                 // הדגשת תוצאת חיפוש (גם אם היא לא מועדף)
-                  starEl.classList.add('highlight');
-             }
-             else {
-                starEl.classList.remove('highlight');
-             }
+            // קביעת נראות הכרטיסיה
+            const shouldBeVisible = isMatch && (!showingFavorites || isFavorite);
+            card.style.display = shouldBeVisible ? '' : 'none'; // הצג/הסתר כרטיסיה
 
-             // קביעת מצב עמעום
-            if ((showingFavorites && !isFavorite) || (searchTerm !== '' && !isMatch)) {
-                 starEl.classList.add('dimmed');
+             // הדגשה
+            if (shouldBeVisible && searchTerm !== '') {
+                 card.classList.add('highlight');
             } else {
-                 starEl.classList.remove('dimmed');
+                 card.classList.remove('highlight');
+            }
+
+            if (shouldBeVisible) {
+                hasVisibleCards = true; // מצאנו לפחות כרטיסיה אחת להצגה
             }
         });
+
+         // הצגת/הסתרת קטגוריות שלמות אם הן ריקות אחרי סינון
+         document.querySelectorAll('.category-section').forEach(section => {
+             const visibleCardsInSection = section.querySelectorAll('.inspiration-card:not([style*="display: none"])');
+             section.style.display = visibleCardsInSection.length > 0 ? '' : 'none';
+         });
+
+
+        // הצגת הודעה אם אין תוצאות
+        if (!hasVisibleCards && studioLayout) {
+             let noResultsMsg = studioLayout.querySelector('.no-results');
+             if (!noResultsMsg) {
+                noResultsMsg = document.createElement('p');
+                noResultsMsg.classList.add('no-results', 'loading'); // שימוש חוזר בקלאס loading לעיצוב
+                studioLayout.appendChild(noResultsMsg);
+             }
+             noResultsMsg.textContent = showingFavorites ? "אין מועדפים להצגה." : "לא נמצאו שימושים התואמים את החיפוש.";
+             noResultsMsg.style.display = 'block';
+        } else {
+            const noResultsMsg = studioLayout.querySelector('.no-results');
+            if (noResultsMsg) noResultsMsg.style.display = 'none';
+        }
     }
 
-    // טיפול בחיפוש (קורא ל-updateFavoritesVisuals לעדכון המראה)
+
+    // טיפול בחיפוש
     function handleSearch() {
-        updateFavoritesVisuals();
+        updateCardsVisualState();
     }
 
      // החלפת מצב הצגת מועדפים
     function toggleFavoritesView() {
         showingFavorites = !showingFavorites;
         favoritesToggleBtn.classList.toggle('active', showingFavorites);
-        // אין צורך לאפס חיפוש כאן, המשתמש יכול לרצות לסנן מועדפים
-        // handleSearch(); // יקרא שוב דרך updateFavoritesVisuals
-        updateFavoritesVisuals(); // מעדכן את המראה לפי המצב החדש
+        updateCardsVisualState(); // עדכון המראה
 
          if(showingFavorites) {
             favoritesToggleBtn.title = "הצג את כל השימושים";
@@ -260,35 +336,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     closePanelBtn.addEventListener('click', hideDetails);
     favoriteBtn.addEventListener('click', toggleFavorite);
-    searchInput.addEventListener('input', handleSearch);
+    searchInput.addEventListener('input', handleSearch); // חיפוש בזמן אמת
     favoritesToggleBtn.addEventListener('click', toggleFavoritesView);
 
-    // סגירת הפאנל בלחיצה מחוצה לו
+    // סגירת הפאנל בלחיצה מחוצה לו (נשאר דומה)
     document.addEventListener('click', (event) => {
-        if (!detailPanel.classList.contains('visible')) return; // הפאנל סגור
-
+        if (!detailPanel.classList.contains('visible')) return;
         const clickedInsidePanel = detailPanel.contains(event.target);
-        const clickedOnStar = event.target.closest('.star'); // האם לחצו על כוכב (או בתוכו)?
-
-        if (!clickedInsidePanel && !clickedOnStar) {
+        // שינוי קטן: בדוק אם הלחיצה הייתה על כרטיסיה, לא רק כוכב
+        const clickedOnCard = event.target.closest('.inspiration-card');
+        if (!clickedInsidePanel && !clickedOnCard) {
              hideDetails();
         }
     });
 
-     // רינדור ראשוני של הכוכבים
-     // עדיף לקרוא לזה אחרי שהדף וה-CSS נטענו במלואם כדי לקבל מידות נכונות
+     // --- Initial Render ---
      window.addEventListener('load', () => {
-          renderNebula();
-          // ודא שגם המידות תקינות אם יש טעינה עצלה של CSS
-          setTimeout(renderNebula, 100);
+          renderStudioLayout();
      });
 
 
-    // טיפול בשינוי גודל חלון
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(renderNebula, 250); // רינדור מחדש עם דיליי קצר
-    });
+    // טיפול בשינוי גודל חלון - אין צורך ברינדור מחדש בגלל CSS Grid/Flexbox
+    // (אלא אם יש לוגיקה מורכבת שתלויה בגודל)
 
 });
