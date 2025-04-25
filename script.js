@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailDescription = document.getElementById('detail-description');
     const detailExample = document.getElementById('detail-example');
     const relatedList = document.getElementById('related-list');
+    const relatedContainer = document.getElementById('related-container'); // מיכל השימושים הקשורים
     const favoriteBtn = document.getElementById('favorite-btn');
     const searchInput = document.getElementById('search-input');
     const favoritesToggleBtn = document.getElementById('favorites-toggle-btn');
@@ -18,9 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUseCaseId = null;
     let showingFavorites = false;
 
+    // --- Data Check ---
+    if (typeof aiUseCases === 'undefined' || !Array.isArray(aiUseCases) || aiUseCases.length === 0) {
+        console.error("שגיאה: נתוני aiUseCases לא נטענו או שהקובץ data.js ריק / שגוי.");
+        // אפשר להציג הודעה למשתמש במקום כוכבים
+        nebulaContainer.innerHTML = '<p style="color: white; text-align: center; margin-top: 50px;">שגיאה בטעינת נתוני השימושים. אנא בדוק את קובץ data.js.</p>';
+        return; // עצירת הרצת שאר הסקריפט
+    }
+
+
     // --- Constants ---
     const CATEGORIES = [...new Set(aiUseCases.map(uc => uc.category))]; // רשימת קטגוריות ייחודיות
     const NUM_CATEGORIES = CATEGORIES.length;
+    const NUM_CATEGORY_COLORS = 8; // מספר הצבעים שהגדרנו ב-CSS
     const PADDING = 80; // ריווח משולי המיכל
 
     // --- Functions ---
@@ -31,7 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const containerWidth = nebulaContainer.clientWidth - PADDING * 2;
         const containerHeight = nebulaContainer.clientHeight - PADDING * 2;
 
-        aiUseCases.forEach((useCase, index) => {
+        if (containerWidth <= 0 || containerHeight <= 0) {
+             console.warn("מיכל הערפילית קטן מדי או לא נראה, לא ניתן לרנדר כוכבים.");
+             setTimeout(renderNebula, 100); // נסה שוב אחרי רגע קט
+             return;
+        }
+
+        aiUseCases.forEach((useCase) => {
             const starEl = document.createElement('div');
             starEl.classList.add('star');
             starEl.dataset.id = useCase.id;
@@ -39,22 +56,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // קביעת צבע לפי קטגוריה
             const categoryIndex = CATEGORIES.indexOf(useCase.category);
-            const categoryColorIndex = (categoryIndex % 8) + 1; // דוגמה ל-8 צבעים, מחזוריות
-            starEl.dataset.categoryColor = categoryColorIndex;
+            // ודא ש-categoryIndex תקין לפני שימוש במודולו
+            if (categoryIndex >= 0) {
+                 const categoryColorIndex = (categoryIndex % NUM_CATEGORY_COLORS) + 1;
+                 starEl.dataset.categoryColor = categoryColorIndex;
+            } else {
+                console.warn(`קטגוריה לא נמצאה עבור שימוש ${useCase.id}: ${useCase.category}`);
+                starEl.dataset.categoryColor = 1; // ברירת מחדל אם הקטגוריה לא תקינה
+            }
+
 
             // מיקום אקראי בסיסי (ניתן לשפר לפי קטגוריות)
             let top = PADDING + Math.random() * containerHeight;
             let left = PADDING + Math.random() * containerWidth;
 
             // שיפור קל לקיבוץ ויזואלי: דחיפה קלה לכיוון מסוים לפי קטגוריה
-            const angle = (categoryIndex / NUM_CATEGORIES) * 2 * Math.PI;
-            const pushFactor = 0.1; // עד כמה לדחוף מהמרכז
-            left += Math.cos(angle) * containerWidth * pushFactor * (Math.random() * 0.5 + 0.5) ;
-            top += Math.sin(angle) * containerHeight * pushFactor * (Math.random() * 0.5 + 0.5) ;
+             if (categoryIndex >= 0 && NUM_CATEGORIES > 0) {
+                 const angle = (categoryIndex / NUM_CATEGORIES) * 2 * Math.PI;
+                 const pushFactor = 0.1; // עד כמה לדחוף מהמרכז
+                 // מרכז המיכל
+                 const centerX = containerWidth / 2 + PADDING;
+                 const centerY = containerHeight / 2 + PADDING;
+                 // דחיפה רדיאלית החוצה מהמרכז לכיוון זווית הקטגוריה
+                 const pushDistance = Math.min(containerWidth, containerHeight) * pushFactor * (Math.random() * 0.5 + 0.5);
+                 left = centerX + Math.cos(angle) * pushDistance + (Math.random() - 0.5) * 50; // הוספת אקראיות קלה
+                 top = centerY + Math.sin(angle) * pushDistance + (Math.random() - 0.5) * 50; // הוספת אקראיות קלה
+             }
 
             // וידוא שהכוכב לא יוצא מהגבולות
-            top = Math.max(PADDING, Math.min(top, containerHeight + PADDING));
-            left = Math.max(PADDING, Math.min(left, containerWidth + PADDING));
+            top = Math.max(PADDING / 2, Math.min(top, containerHeight + PADDING * 1.5)); // מתיר קצת חריגה
+            left = Math.max(PADDING / 2, Math.min(left, containerWidth + PADDING * 1.5)); // מתיר קצת חריגה
 
 
             starEl.style.top = `${top}px`;
@@ -64,47 +95,59 @@ document.addEventListener('DOMContentLoaded', () => {
             starEl.addEventListener('click', () => showDetails(useCase.id));
             nebulaContainer.appendChild(starEl);
         });
-        updateFavoritesVisuals(); // עדכון ראשוני לכוכבים מועדפים
+        // עדכון ויזואלי ראשוני לאחר יצירת הכוכבים
+        updateFavoritesVisuals();
+        handleSearch(); // החלת מסננים קיימים (חיפוש/מועדפים)
     }
 
     // הצגת פאנל הפרטים
     function showDetails(id) {
         const useCase = aiUseCases.find(uc => uc.id === id);
-        if (!useCase) return;
+        if (!useCase) {
+            console.error(`לא נמצא שימוש עם ID=${id}`);
+            return;
+        }
 
         currentUseCaseId = id; // שמירת ה-ID הנוכחי
 
         detailTitle.textContent = `${useCase.id}. ${useCase.title}`;
-        detailCategory.textContent = useCase.category;
-        detailDescription.textContent = useCase.description;
-        detailExample.textContent = useCase.example;
+        detailCategory.textContent = useCase.category || 'לא ידוע'; // ערך ברירת מחדל
+        detailDescription.textContent = useCase.description || 'אין תיאור זמין.';
+        detailExample.textContent = useCase.example || 'אין דוגמה זמינה.';
 
         // עדכון צבע קטגוריה בפאנל
         const categoryIndex = CATEGORIES.indexOf(useCase.category);
-        const categoryColorIndex = (categoryIndex % 8) + 1;
-        detailCategory.style.color = `var(--cat-color-${categoryColorIndex})`;
+         if (categoryIndex >= 0) {
+             const categoryColorIndex = (categoryIndex % NUM_CATEGORY_COLORS) + 1;
+             detailCategory.style.color = `var(--cat-color-${categoryColorIndex})`;
+         } else {
+             detailCategory.style.color = 'var(--text-color)'; // צבע ברירת מחדל
+         }
 
 
         // מילוי רשימת שימושים קשורים
         relatedList.innerHTML = '';
-        if (useCase.related && useCase.related.length > 0) {
-            document.getElementById('related-container').style.display = 'block';
+        if (useCase.related && Array.isArray(useCase.related) && useCase.related.length > 0) {
+            relatedContainer.style.display = 'block';
             useCase.related.forEach(relatedId => {
                 const relatedUseCase = aiUseCases.find(uc => uc.id === relatedId);
                 if (relatedUseCase) {
                     const li = document.createElement('li');
                     const link = document.createElement('a');
                     link.textContent = `${relatedUseCase.id}. ${relatedUseCase.title}`;
+                    link.href = "#"; // למנוע התנהגות קישור רגילה
                     link.onclick = (e) => {
-                        e.preventDefault(); // למנוע ברירת מחדל אם יש
+                        e.preventDefault();
                         showDetails(relatedId); // פתיחת הפאנל של השימוש הקשור
                     };
                     li.appendChild(link);
                     relatedList.appendChild(li);
+                } else {
+                     console.warn(`שימוש קשור עם ID=${relatedId} לא נמצא עבור שימוש ${id}`);
                 }
             });
         } else {
-             document.getElementById('related-container').style.display = 'none';
+             relatedContainer.style.display = 'none';
         }
 
 
@@ -142,66 +185,70 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             favorites.push(currentUseCaseId); // הוספה
         }
-        localStorage.setItem('aiLndFavorites', JSON.stringify(favorites));
+        // שמירה ב-localStorage
+        try {
+             localStorage.setItem('aiLndFavorites', JSON.stringify(favorites));
+        } catch (e) {
+            console.error("שגיאה בשמירת מועדפים ל-localStorage:", e);
+            // אפשר להציג הודעה למשתמש
+        }
+
         updateFavoriteButton(currentUseCaseId);
         updateFavoritesVisuals(); // עדכון מראה הכוכבים בערפילית
     }
 
-    // עדכון ויזואלי לכוכבים שהם מועדפים
+    // עדכון ויזואלי לכוכבים שהם מועדפים או מסוננים
     function updateFavoritesVisuals() {
-        document.querySelectorAll('.star').forEach(starEl => {
-            const id = parseInt(starEl.dataset.id);
-            if (favorites.includes(id)) {
-                starEl.classList.add('highlight'); // שימוש בקלאס הקיים או יצירת קלאס ייעודי
-            } else {
-                 starEl.classList.remove('highlight');
-            }
-             // טיפול במצב הצגת מועדפים בלבד
-             if (showingFavorites && !favorites.includes(id)) {
-                 starEl.classList.add('dimmed');
-             } else if (!searchInput.value) { // להסיר עמעום רק אם אין חיפוש פעיל
-                 starEl.classList.remove('dimmed');
-             }
-        });
-    }
-
-    // טיפול בחיפוש
-    function handleSearch() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         document.querySelectorAll('.star').forEach(starEl => {
             const id = parseInt(starEl.dataset.id);
+            const isFavorite = favorites.includes(id);
             const useCase = aiUseCases.find(uc => uc.id === id);
+
+             if (!useCase) return; // למקרה שלא נמצא מסיבה כלשהי
+
+            // בדיקת התאמה לחיפוש
             const isMatch = searchTerm === '' ||
                             useCase.title.toLowerCase().includes(searchTerm) ||
                             useCase.description.toLowerCase().includes(searchTerm) ||
                             useCase.example.toLowerCase().includes(searchTerm) ||
                             useCase.category.toLowerCase().includes(searchTerm) ||
-                            useCase.id.toString() === searchTerm; // לאפשר חיפוש לפי מספר
+                            useCase.id.toString() === searchTerm;
 
-            // עמעום אם לא מתאים וגם לא במצב הצגת מועדפים בלבד
-            if (!isMatch && !showingFavorites) {
+             // קביעת מצב הדגשה
+            if (isFavorite && (!showingFavorites || isMatch) && searchTerm === '') {
+                // הדגשת מועדף רק אם אין חיפוש פעיל או אם הוא מתאים לחיפוש במצב "הכל"
+                 starEl.classList.add('highlight');
+             } else if (isMatch && searchTerm !== '' ) {
+                 // הדגשת תוצאת חיפוש (גם אם היא לא מועדף)
+                  starEl.classList.add('highlight');
+             }
+             else {
+                starEl.classList.remove('highlight');
+             }
+
+             // קביעת מצב עמעום
+            if ((showingFavorites && !isFavorite) || (searchTerm !== '' && !isMatch)) {
                  starEl.classList.add('dimmed');
-                 starEl.classList.remove('highlight'); // להסיר הדגשת מועדף אם לא מתאים לחיפוש
-            } else if (!showingFavorites || favorites.includes(id)) { // להסיר עמעום אם מתאים לחיפוש או במצב מועדפים
-                starEl.classList.remove('dimmed');
-                 // להחזיר הדגשה אם הוא מועדף ומתאים לחיפוש (או אין חיפוש)
-                 if(favorites.includes(id)) {
-                    starEl.classList.add('highlight');
-                 }
             } else {
-                 // אם במצב הצגת מועדפים בלבד, והוא לא מועדף, שישאר מעומעם
-                 starEl.classList.add('dimmed');
+                 starEl.classList.remove('dimmed');
             }
         });
+    }
+
+    // טיפול בחיפוש (קורא ל-updateFavoritesVisuals לעדכון המראה)
+    function handleSearch() {
+        updateFavoritesVisuals();
     }
 
      // החלפת מצב הצגת מועדפים
     function toggleFavoritesView() {
         showingFavorites = !showingFavorites;
-        favoritesToggleBtn.classList.toggle('active', showingFavorites); // (צריך להוסיף סטייל ל-active אם רוצים)
-        searchInput.value = ''; // איפוס חיפוש כשמחליפים מצב
-        handleSearch(); // מפעיל מחדש את הלוגיקה של העמעום/הדגשה
-        updateFavoritesVisuals(); // מוודא שהכוכבים הנכונים מודגשים/מעומעמים
+        favoritesToggleBtn.classList.toggle('active', showingFavorites);
+        // אין צורך לאפס חיפוש כאן, המשתמש יכול לרצות לסנן מועדפים
+        // handleSearch(); // יקרא שוב דרך updateFavoritesVisuals
+        updateFavoritesVisuals(); // מעדכן את המראה לפי המצב החדש
+
          if(showingFavorites) {
             favoritesToggleBtn.title = "הצג את כל השימושים";
          } else {
@@ -216,23 +263,28 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', handleSearch);
     favoritesToggleBtn.addEventListener('click', toggleFavoritesView);
 
-    // סגירת הפאנל בלחיצה מחוצה לו (אופציונלי)
+    // סגירת הפאנל בלחיצה מחוצה לו
     document.addEventListener('click', (event) => {
-        if (detailPanel.classList.contains('visible') &&
-            !detailPanel.contains(event.target) &&
-            !event.target.classList.contains('star')) {
-           // ודא שהלחיצה לא הייתה על כוכב אחר שפותח את הפאנל מחדש
-           const clickedStar = event.target.closest('.star');
-           if(!clickedStar) {
-                hideDetails();
-           }
+        if (!detailPanel.classList.contains('visible')) return; // הפאנל סגור
+
+        const clickedInsidePanel = detailPanel.contains(event.target);
+        const clickedOnStar = event.target.closest('.star'); // האם לחצו על כוכב (או בתוכו)?
+
+        if (!clickedInsidePanel && !clickedOnStar) {
+             hideDetails();
         }
     });
 
      // רינדור ראשוני של הכוכבים
-    renderNebula();
+     // עדיף לקרוא לזה אחרי שהדף וה-CSS נטענו במלואם כדי לקבל מידות נכונות
+     window.addEventListener('load', () => {
+          renderNebula();
+          // ודא שגם המידות תקינות אם יש טעינה עצלה של CSS
+          setTimeout(renderNebula, 100);
+     });
 
-    // טיפול בשינוי גודל חלון (רינדור מחדש למיקומים) - אופציונלי לשיפור
+
+    // טיפול בשינוי גודל חלון
     let resizeTimeout;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimeout);
