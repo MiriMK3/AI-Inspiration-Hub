@@ -1,30 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM Elements ---
-    const appContainer = document.getElementById('app-container');
-    const studioDashboard = document.getElementById('studio-dashboard');
-    const detailPanel = document.getElementById('detail-panel');
-    const panelContentWrapper = detailPanel.querySelector('.panel-content-wrapper');
-    const detailContent = document.getElementById('detail-content');
-    const panelLoader = document.getElementById('panel-loader');
-    const closePanelBtn = document.getElementById('close-panel-btn');
-    const detailTitle = document.getElementById('detail-title');
-    const detailCategory = document.getElementById('detail-category');
-    const detailDescription = document.getElementById('detail-description');
-    const detailExample = document.getElementById('detail-example');
-    const relatedList = document.getElementById('related-list');
-    const relatedContainer = document.getElementById('related-container');
-    const favoriteBtn = document.getElementById('favorite-btn');
-    const searchInput = document.getElementById('search-input');
-    const favoritesToggleBtn = document.getElementById('favorites-toggle-btn');
-    const statusMessageContainer = document.getElementById('status-message-container');
-    const initialLoader = document.getElementById('initial-loader'); // טוען ראשוני
+    // --- DOM Element Caching ---
+    // Cache frequently used elements to improve performance
+    const elements = {
+        appContainer: document.getElementById('app-container'),
+        studioDashboard: document.getElementById('studio-dashboard'),
+        detailPanel: document.getElementById('detail-panel'),
+        panelContentWrapper: document.getElementById('detail-panel')?.querySelector('.panel-content-wrapper'),
+        detailContent: document.getElementById('detail-content'),
+        panelLoader: document.getElementById('panel-loader'),
+        closePanelBtn: document.getElementById('close-panel-btn'),
+        detailTitle: document.getElementById('detail-title'),
+        detailCategory: document.getElementById('detail-category'),
+        detailCategorySpan: document.getElementById('detail-category'), // Get the span directly
+        detailDescription: document.getElementById('detail-description'),
+        detailExample: document.getElementById('detail-example'),
+        relatedList: document.getElementById('related-list'),
+        relatedContainer: document.getElementById('related-container'),
+        favoriteBtn: document.getElementById('favorite-btn'),
+        searchInput: document.getElementById('search-input'),
+        favoritesToggleBtn: document.getElementById('favorites-toggle-btn'),
+        statusMessageContainer: document.getElementById('status-message-container'),
+        initialLoader: document.getElementById('initial-loader')
+    };
 
     // --- State ---
     let favorites = [];
     let currentUseCaseId = null;
     let showingFavorites = false;
-    let allCards = [];
-    let isLoading = false; // למניעת פתיחת פאנל כפולה
+    let allCards = []; // Stores references to card elements
+    let isLoading = false;
 
     // --- Constants & Initial Setup ---
     const LS_FAVORITES_KEY = 'aiLndFavorites_v3';
@@ -32,11 +36,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let CATEGORY_ICONS = {};
     let categoryColors = [];
     const DEFAULT_ICON = "✨";
-    const DEFAULT_CATEGORY_COLOR = '#777'; // אפור כברירת מחדל
+    const DEFAULT_CATEGORY_COLOR = '#777';
 
     // --- Initialization Function ---
     function initializeApp() {
-        if (!checkDependencies()) return; // בדיקת קיום אלמנטים חיוניים
+        if (!validateDependencies()) {
+            console.error("Initialization failed: Essential DOM elements missing.");
+            // Optionally display a critical error message to the user
+            document.body.innerHTML = '<p style="color:red; padding: 20px; text-align:center;">שגיאה קריטית: רכיבי האפליקציה לא נטענו כראוי. נסה לרענן את הדף או בדוק את הקונסולה.</p>';
+            return;
+        }
 
         loadFavorites();
         setupConstants();
@@ -46,41 +55,37 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        renderStudioDashboard(); // רינדור ראשוני
-        setupEventListeners(); // הגדרת מאזינים
-        updateFavoritesButtonVisualState(); // עדכון מראה כפתור המועדפים
+        renderStudioDashboard();
+        setupEventListeners();
+        updateFavoritesButtonVisualState(); // Update main toggle button
 
-        // הסתרת טוען ראשוני
-        if (initialLoader) initialLoader.style.display = 'none';
+        if (elements.initialLoader) elements.initialLoader.style.display = 'none';
     }
 
     // --- Helper Functions ---
-
-    function checkDependencies() {
-        const requiredElements = [studioDashboard, detailPanel, panelContentWrapper, detailContent, panelLoader, closePanelBtn, detailTitle, detailCategory, detailDescription, detailExample, relatedList, relatedContainer, favoriteBtn, searchInput, favoritesToggleBtn, statusMessageContainer, initialLoader];
-        if (requiredElements.some(el => !el)) {
-            console.error("שגיאה קריטית: אחד או יותר מאלמנטי ה-DOM הנדרשים לא נמצאו. בדוק את ה-HTML.");
-            // אפשר להציג הודעה למשתמש כאן אם רוצים
-            return false;
+    function validateDependencies() {
+        for (const key in elements) {
+            if (!elements[key]) {
+                console.error(`Initialization Error: Element with ID/Selector '${key}' not found.`);
+                return false;
+            }
         }
         return true;
     }
 
+    function displayStatusMessage(message, type = 'info', duration = 4000) {
+        if (!elements.statusMessageContainer) return;
+        // Clear previous messages first
+        while (elements.statusMessageContainer.firstChild) {
+            elements.statusMessageContainer.removeChild(elements.statusMessageContainer.firstChild);
+        }
 
-    function displayStatusMessage(message, type = 'info', duration = 5000) {
-        if (!statusMessageContainer) return;
         const messageDiv = document.createElement('div');
         messageDiv.textContent = message;
         messageDiv.className = `status-message ${type}`;
-        messageDiv.setAttribute('role', 'alert'); // נגישות
+        messageDiv.setAttribute('role', 'alert');
+        elements.statusMessageContainer.appendChild(messageDiv);
 
-        // הסרת הודעות קודמות לפני הוספת חדשה
-        while (statusMessageContainer.firstChild) {
-            statusMessageContainer.removeChild(statusMessageContainer.firstChild);
-        }
-        statusMessageContainer.appendChild(messageDiv);
-
-        // הסרה אוטומטית
         if (duration > 0) {
             setTimeout(() => {
                 messageDiv.style.transition = 'opacity 0.5s ease';
@@ -92,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleLoadError(message) {
         console.error(message);
-        if (initialLoader) initialLoader.style.display = 'none'; // הסתר טוען ראשוני
-        displayStatusMessage(message, 'error', 0); // הודעת שגיאה קבועה
+        if (elements.initialLoader) elements.initialLoader.style.display = 'none';
+        displayStatusMessage(message, 'error', 0); // Persistent error message
     }
 
     function loadFavorites() {
@@ -102,28 +107,22 @@ document.addEventListener('DOMContentLoaded', () => {
             favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
             if (!Array.isArray(favorites)) {
                  favorites = [];
-                 console.warn("נתוני מועדפים פגומים, אופס.");
                  localStorage.removeItem(LS_FAVORITES_KEY);
             }
         } catch (e) {
-            console.error("שגיאה בקריאת מועדפים:", e);
-            favorites = [];
-            displayStatusMessage('לא ניתן היה לטעון את המועדפים השמורים.', 'error');
+            console.error("Error reading favorites:", e); favorites = [];
         }
     }
 
     function saveFavorites() {
         try {
              localStorage.setItem(LS_FAVORITES_KEY, JSON.stringify(favorites));
-        } catch (e) {
-            console.error("שגיאה בשמירת מועדפים:", e);
-            displayStatusMessage('שגיאה בשמירת המועדפים.', 'error');
-        }
+        } catch (e) { console.error("Error saving favorites:", e); displayStatusMessage('שגיאה בשמירת המועדפים.', 'error');}
     }
 
-    function setupConstants() {
+     function setupConstants() {
          CATEGORIES = [...new Set(aiUseCases.map(uc => uc.category).filter(Boolean))];
-         CATEGORY_ICONS = { /* אותם אייקונים כמו בקוד הקודם */
+         CATEGORY_ICONS = { /* Icons dictionary */
             "יצירת תוכן לימודי": "📝", "הערכה ומדידה": "📊", "התאמה אישית (פרסונליזציה)": "⚙️",
             "ניהול ידע ומאגרי מידע": "📚", "פיתוח חומרי עזר": "🛠️", "הנגשת מידע": "🌐",
             "תקשורת, מעורבות והטמעה": "💬", "ניתוח נתונים וקבלת החלטות": "📈",
@@ -134,15 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
             "ניהול פרויקטים והכשרת סגל": "📋", "שימושים מתקדמים ועתידיים": "🔮",
              "אחר": "✨"
          };
-         try {
+         try { /* Reading CSS colors */
             const cssVariables = getComputedStyle(document.documentElement);
             const colorsString = cssVariables.getPropertyValue('--cat-colors').trim();
             if (colorsString) {
                 categoryColors = colorsString.split(',').map(color => color.trim());
-                if(categoryColors.length < 10) { // ודא שיש מספיק צבעים
-                   console.warn("Not enough category colors defined in --cat-colors CSS variable.");
-                   categoryColors = [...categoryColors, ...Array(10 - categoryColors.length).fill(DEFAULT_CATEGORY_COLOR)];
-                }
+                while (categoryColors.length < 10) categoryColors.push(DEFAULT_CATEGORY_COLOR); // Ensure enough colors
             } else { throw new Error("--cat-colors not found"); }
          } catch (e) {
              console.error("Error reading CSS category colors:", e);
@@ -153,8 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Rendering Functions ---
 
     function renderStudioDashboard() {
-        if (!studioDashboard) return;
-        studioDashboard.innerHTML = ''; // ניקוי
+        if (!elements.studioDashboard) return;
+        elements.studioDashboard.innerHTML = ''; // Clear before render
         allCards = [];
 
         const groupedUseCases = aiUseCases.reduce((acc, useCase) => {
@@ -170,7 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedCategories.forEach((category, index) => {
             const categoryZone = createCategoryZone(category, index);
             const cardGrid = document.createElement('div');
-            cardGrid.classList.add('card-grid');
+            cardGrid.className = 'card-grid';
+
+            // Sort use cases within the category by ID for consistent order
+            groupedUseCases[category].sort((a, b) => a.id - b.id);
 
             groupedUseCases[category].forEach(useCase => {
                 const card = createInspirationCard(useCase);
@@ -179,37 +178,37 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             categoryZone.appendChild(cardGrid);
-            studioDashboard.appendChild(categoryZone);
+            elements.studioDashboard.appendChild(categoryZone);
         });
 
-        updateCardsVisualState(); // עדכון מצב ויזואלי
+        updateCardsVisualState();
     }
 
-     function createCategoryZone(category, index) {
-         const categoryZone = document.createElement('div');
-         categoryZone.className = 'category-zone';
-         const categoryColor = categoryColors[index % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
-         categoryZone.style.setProperty('--category-color', categoryColor);
+    function createCategoryZone(category, index) {
+        const categoryZone = document.createElement('div');
+        categoryZone.className = 'category-zone';
+        const categoryColor = categoryColors[index % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
+        categoryZone.style.setProperty('--category-color', categoryColor);
 
-         const categoryHeader = document.createElement('div');
-         categoryHeader.className = 'category-header';
+        const categoryHeader = document.createElement('div');
+        categoryHeader.className = 'category-header';
 
-         const iconSpan = document.createElement('span');
-         iconSpan.className = 'category-icon';
-         iconSpan.setAttribute('aria-hidden', 'true');
-         iconSpan.textContent = CATEGORY_ICONS[category] || DEFAULT_ICON;
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'category-icon';
+        iconSpan.setAttribute('aria-hidden', 'true');
+        iconSpan.textContent = CATEGORY_ICONS[category] || DEFAULT_ICON;
 
-         const categoryTitle = document.createElement('h2');
-         categoryTitle.className = 'category-title';
-         categoryTitle.textContent = category;
+        const categoryTitle = document.createElement('h2');
+        categoryTitle.className = 'category-title';
+        categoryTitle.textContent = category;
 
-         categoryHeader.appendChild(iconSpan);
-         categoryHeader.appendChild(categoryTitle);
-         categoryZone.appendChild(categoryHeader);
+        categoryHeader.appendChild(iconSpan);
+        categoryHeader.appendChild(categoryTitle);
+        categoryZone.appendChild(categoryHeader);
 
-         categoryZone.style.animationDelay = `${0.1 + index * 0.05}s`;
-         return categoryZone;
-     }
+        categoryZone.style.animationDelay = `${0.1 + index * 0.05}s`;
+        return categoryZone;
+    }
 
     function createInspirationCard(useCase) {
         const card = document.createElement('div');
@@ -218,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.dataset.category = useCase.category || 'אחר';
         card.tabIndex = 0;
         card.setAttribute('role', 'button');
-        card.setAttribute('aria-label', `שימוש ${useCase.id}: ${useCase.title}`);
+        card.setAttribute('aria-label', `שימוש ${useCase.id}: ${useCase.title || 'ללא כותרת'}`);
 
         const cardContent = document.createElement('div');
         cardContent.className = 'card-content';
@@ -232,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const cardTitle = document.createElement('h3');
         cardTitle.className = 'card-title';
-        cardTitle.textContent = useCase.title;
+        cardTitle.textContent = useCase.title || 'שימוש ללא כותרת';
 
         cardContent.appendChild(cardId);
         cardContent.appendChild(cardTitle);
@@ -245,175 +244,183 @@ document.addEventListener('DOMContentLoaded', () => {
         card.appendChild(cardContent);
         card.appendChild(favoriteIndicator);
 
-        // *** תיקון קריטי: הוספת מאזינים כאן ***
-        card.addEventListener('click', () => showDetails(useCase.id));
+        // Attach listeners directly
+        card.addEventListener('click', () => handleCardClick(useCase.id));
         card.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                showDetails(useCase.id);
+                handleCardClick(useCase.id);
             }
         });
 
         return card;
     }
 
-    // --- Detail Panel Logic ---
+     // --- Detail Panel Logic ---
+     function handleCardClick(id) {
+        // Prevent opening if already loading or the same card is clicked
+        if (isLoading || (elements.detailPanel.classList.contains('visible') && currentUseCaseId === id)) {
+            return;
+        }
+        showDetails(id);
+     }
+
 
     function showDetails(id) {
-        if (isLoading || !detailPanel) return;
-        const useCaseId = parseInt(id, 10); // ודא שזה מספר
-        if (isNaN(useCaseId)) {
-             console.error("Invalid ID passed to showDetails:", id);
-             return;
-        }
+        if (isLoading || !elements.detailPanel) return;
+        const useCaseIdNum = parseInt(id, 10);
+        if (isNaN(useCaseIdNum)) return;
 
         isLoading = true;
-        detailPanel.classList.add('loading'); // מציג ספינר CSS
+        elements.detailPanel.classList.add('loading'); // Show spinner via CSS
 
-        // נקה תוכן ישן וגלול למעלה מיידית
         clearPanelContent();
-        if(detailContent) detailContent.scrollTop = 0;
+        if(elements.detailContent) elements.detailContent.scrollTop = 0;
 
+        const useCase = aiUseCases.find(uc => uc.id === useCaseIdNum);
 
-        const useCase = aiUseCases.find(uc => uc.id === useCaseId);
         if (!useCase) {
-            console.error(`לא נמצא שימוש עם ID=${useCaseId}`);
-            displayStatusMessage(`שגיאה: לא נמצא שימוש מספר ${useCaseId}.`, 'error');
-            hideDetails(); // סגור פאנל
-            detailPanel.classList.remove('loading'); // הסר טוען
+            console.error(`Use case with ID=${useCaseIdNum} not found.`);
+            displayStatusMessage(`שגיאה: לא נמצא שימוש מספר ${useCaseIdNum}.`, 'error');
+            hideDetails();
+            elements.detailPanel.classList.remove('loading');
             isLoading = false;
             return;
         }
 
-        currentUseCaseId = useCaseId; // שמור את ה-ID שנפתח
+        currentUseCaseId = useCaseIdNum; // Store the currently open ID
 
-        // פתח את הפאנל
-        detailPanel.setAttribute('aria-hidden', 'false');
-        detailPanel.classList.add('visible');
-
-        // מילוי התוכן (יכול להתרחש מיד, הספינר יוסר בסוף)
+        // Populate content before showing panel for smoother transition
         populatePanelContent(useCase);
 
-        // הסר ספינר טעינה (גם אם אין השהיה מדומה)
-        // אפשר להוסיף השהייה קטנה אם רוצים לראות את הספינר לרגע
-        setTimeout(() => {
-            detailPanel.classList.remove('loading');
-            isLoading = false;
-        }, 100); // השהייה קצרה
-    }
+        // Make panel visible
+        elements.detailPanel.setAttribute('aria-hidden', 'false');
+        elements.detailPanel.classList.add('visible');
 
+        // Remove loader after a short delay (allows CSS transition)
+        // No need for requestAnimationFrame if populating before showing
+        setTimeout(() => {
+            elements.detailPanel.classList.remove('loading');
+            isLoading = false;
+        }, 300); // Adjust delay as needed
+    }
 
     function clearPanelContent() {
-        if (!detailTitle) return; // בדיקה נוספת
-        detailTitle.textContent = '';
-        detailCategory.textContent = '';
-        detailDescription.textContent = '';
-        detailExample.textContent = '';
-        relatedList.innerHTML = '';
-        if (relatedContainer) relatedContainer.style.display = 'none';
-        if (favoriteBtn) favoriteBtn.style.visibility = 'hidden'; // הסתר עד שהתוכן מוכן
+         // Clear previous content safely
+        if (elements.detailTitle) elements.detailTitle.textContent = '';
+        if (elements.detailCategorySpan) elements.detailCategorySpan.textContent = '';
+        if (elements.detailDescription) elements.detailDescription.textContent = '';
+        if (elements.detailExample) elements.detailExample.textContent = '';
+        if (elements.relatedList) elements.relatedList.innerHTML = '';
+        if (elements.relatedContainer) elements.relatedContainer.style.display = 'none';
+        if (elements.favoriteBtn) elements.favoriteBtn.style.visibility = 'hidden';
     }
+
 
     function populatePanelContent(useCase) {
-        if (!detailTitle) return; // בדיקה
+        if (!elements.detailTitle) return; // Ensure elements exist
 
-        detailTitle.textContent = `${useCase.id}. ${useCase.title}`;
+        elements.detailTitle.textContent = `${useCase.id}. ${useCase.title || ''}`;
         const categoryName = useCase.category || 'אחר';
-        detailCategory.textContent = categoryName;
 
-        const categoryIndex = CATEGORIES.indexOf(categoryName);
-        const categoryColor = categoryColors[categoryIndex % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
-        const categorySpan = detailCategory.parentNode.querySelector('span'); // מצא את ה-span
-         if (categorySpan) {
-             categorySpan.textContent = categoryName; // עדכן את הטקסט של ה-span
-             categorySpan.style.color = categoryColor;
-             categorySpan.style.borderBottomColor = categoryColor;
-         }
-
-
-        detailDescription.textContent = useCase.description || 'אין תיאור זמין.';
-        detailExample.textContent = useCase.example || 'אין דוגמה זמינה.';
-
-        // שימושים קשורים
-        relatedList.innerHTML = '';
-        let foundRelated = false;
-        if (useCase.related && Array.isArray(useCase.related) && useCase.related.length > 0) {
-            useCase.related.forEach(relatedId => {
-                const relatedUseCase = aiUseCases.find(uc => uc.id === relatedId);
-                if (relatedUseCase) {
-                    foundRelated = true;
-                    const li = document.createElement('li');
-                    const link = document.createElement('a');
-                    link.textContent = `${relatedUseCase.id}. ${relatedUseCase.title}`;
-                    link.href = "#";
-                    // שימוש בפונקציה אנונימית נפרדת
-                    const showRelatedDetails = (e) => { e.preventDefault(); showDetails(relatedId); };
-                    link.addEventListener('click', showRelatedDetails);
-                    link.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showRelatedDetails(e); });
-                    li.appendChild(link);
-                    relatedList.appendChild(li);
-                }
-            });
+        if(elements.detailCategorySpan) {
+            elements.detailCategorySpan.textContent = categoryName;
+             const categoryIndex = CATEGORIES.indexOf(categoryName);
+             const categoryColor = categoryColors[categoryIndex % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
+             elements.detailCategorySpan.style.color = categoryColor;
+             elements.detailCategorySpan.style.borderBottomColor = categoryColor;
+             // Set the variable for the parent if needed (e.g., for category background)
+             // elements.detailCategorySpan.closest('.category')?.style.setProperty('--category-color', categoryColor);
         }
-        if(relatedContainer) relatedContainer.style.display = foundRelated ? 'block' : 'none';
 
-        updateFavoriteButtonAppearance(useCase.id); // עדכון מראה כפתור
-        if (favoriteBtn) favoriteBtn.style.visibility = 'visible'; // הצג את הכפתור
+
+        elements.detailDescription.textContent = useCase.description || 'אין תיאור זמין.';
+        elements.detailExample.textContent = useCase.example || 'אין דוגמה זמינה.';
+
+        // Related items
+        if (elements.relatedList && elements.relatedContainer) {
+            elements.relatedList.innerHTML = ''; // Clear first
+            let foundRelated = false;
+            if (useCase.related && Array.isArray(useCase.related) && useCase.related.length > 0) {
+                useCase.related.forEach(relatedId => {
+                    const relatedUseCase = aiUseCases.find(uc => uc.id === relatedId);
+                    if (relatedUseCase) {
+                        foundRelated = true;
+                        const li = document.createElement('li');
+                        const link = document.createElement('a');
+                        link.textContent = `${relatedUseCase.id}. ${relatedUseCase.title}`;
+                        link.href = "#";
+                        const showRelatedDetails = (e) => { e.preventDefault(); showDetails(relatedId); };
+                        link.addEventListener('click', showRelatedDetails);
+                        link.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showRelatedDetails(e); });
+                        li.appendChild(link);
+                        elements.relatedList.appendChild(li);
+                    }
+                });
+            }
+            elements.relatedContainer.style.display = foundRelated ? 'block' : 'none';
+        }
+
+        updateFavoriteButtonAppearance(useCase.id);
+        if(elements.favoriteBtn) elements.favoriteBtn.style.visibility = 'visible';
     }
 
-
     function hideDetails() {
-        if (!detailPanel) return;
-        detailPanel.classList.remove('visible');
-        detailPanel.setAttribute('aria-hidden', 'true');
+        if (!elements.detailPanel) return;
+        elements.detailPanel.classList.remove('visible');
+        elements.detailPanel.setAttribute('aria-hidden', 'true');
         currentUseCaseId = null;
-        // לא מנקה תוכן כאן כדי שהסגירה תהיה חלקה
+        // Optional: Clear content after transition ends for performance
+        // setTimeout(clearPanelContent, 500);
     }
 
     // --- Favorites Logic ---
 
     function updateFavoriteButtonAppearance(id) {
-        if (!favoriteBtn) return;
-        const useCaseIdNum = parseInt(id, 10); // ודא שזה מספר להשוואה
+        if (!elements.favoriteBtn) return;
+        const useCaseIdNum = parseInt(id, 10);
         const isFav = favorites.includes(useCaseIdNum);
-        favoriteBtn.innerHTML = isFav ? '⭐ הוסר מהמועדפים' : '⭐ הוסף למועדפים';
-        favoriteBtn.classList.toggle('is-favorite', isFav);
-        favoriteBtn.setAttribute('aria-pressed', isFav.toString());
-        favoriteBtn.setAttribute('aria-label', isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים');
+        elements.favoriteBtn.innerHTML = isFav ? '⭐ הוסר מהמועדפים' : '⭐ הוסף למועדפים';
+        elements.favoriteBtn.classList.toggle('is-favorite', isFav);
+        elements.favoriteBtn.setAttribute('aria-pressed', isFav.toString());
+        elements.favoriteBtn.setAttribute('aria-label', isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים');
     }
 
     function toggleFavorite() {
-        if (currentUseCaseId === null) return; // בדוק אם יש ID נוכחי
-        const index = favorites.indexOf(currentUseCaseId);
-        const cardElement = allCards.find(card => parseInt(card.dataset.id) === currentUseCaseId);
+        if (currentUseCaseId === null || !elements.favoriteBtn) return; // Check elements exist
 
-        if (index > -1) { // קיים, הסר
+        const index = favorites.indexOf(currentUseCaseId);
+        const cardElement = allCards.find(card => card && parseInt(card.dataset.id) === currentUseCaseId); // Check card exists
+
+        if (index > -1) { // Remove
             favorites.splice(index, 1);
             if(cardElement) cardElement.classList.remove('is-favorite');
-        } else { // לא קיים, הוסף
+            displayStatusMessage(`שימוש ${currentUseCaseId} הוסר מהמועדפים.`);
+        } else { // Add
             favorites.push(currentUseCaseId);
              if(cardElement) cardElement.classList.add('is-favorite');
+             displayStatusMessage(`שימוש ${currentUseCaseId} נוסף למועדפים.`);
         }
         saveFavorites();
-        updateFavoriteButtonAppearance(currentUseCaseId); // עדכן כפתור בפאנל
+        updateFavoriteButtonAppearance(currentUseCaseId);
 
-        // עדכן את התצוגה רק אם המשתמש במצב 'הצג מועדפים' והוסר פריט
-        if (showingFavorites && index > -1) {
+        if (showingFavorites) {
+            // A favorite was removed while in favorites view, or added (less common to filter immediately)
             updateCardsVisualState();
         }
-         // עדכון ויזואלי קל לכפתור הראשי אם רשימת המועדפים משתנה
-        updateFavoritesButtonVisualState();
-
+        updateFavoritesButtonVisualState(); // Update main toggle button potentially
     }
 
     // --- Filtering and Visual State ---
 
     function updateCardsVisualState() {
-        if (!studioDashboard) return; // ודא שהדשבורד קיים
-        const searchTerm = searchInput.value.toLowerCase().trim();
+        if (!elements.studioDashboard) return;
+        const searchTerm = elements.searchInput ? elements.searchInput.value.toLowerCase().trim() : "";
         let hasVisibleCardsOverall = false;
+        let visibleCount = 0;
 
         allCards.forEach(card => {
+            if (!card) return; // Check if card exists
             const id = parseInt(card.dataset.id);
             const useCase = aiUseCases.find(uc => uc.id === id);
             if (!useCase) return;
@@ -427,36 +434,45 @@ document.addEventListener('DOMContentLoaded', () => {
             const exampleText = (useCase.example || '').toLowerCase();
 
             const isMatch = searchTerm === '' ||
-                            titleText.includes(searchTerm) ||
-                            descriptionText.includes(searchTerm) ||
-                            exampleText.includes(searchTerm) ||
-                            categoryText.includes(searchTerm) ||
+                            titleText.includes(searchTerm) || descriptionText.includes(searchTerm) ||
+                            exampleText.includes(searchTerm) || categoryText.includes(searchTerm) ||
                             useCase.id.toString() === searchTerm;
 
             const shouldBeVisible = isMatch && (!showingFavorites || isFavorite);
 
-            card.style.display = shouldBeVisible ? '' : 'flex'; // שימוש ב-flex במקום ברירת מחדל
+            // *** שינוי: במקום להסתיר לגמרי, נשאיר את האלמנט אך נסתיר ויזואלית עם קלאס ***
+            // card.style.display = shouldBeVisible ? '' : 'none';
+             card.classList.toggle('card-hidden', !shouldBeVisible);
+
+
             card.classList.toggle('highlight', shouldBeVisible && searchTerm !== '');
 
-            if (shouldBeVisible) hasVisibleCardsOverall = true;
+            if (shouldBeVisible) {
+                hasVisibleCardsOverall = true;
+                visibleCount++;
+            }
         });
 
-        // הצג/הסתר אזורי קטגוריה
+        // הצג/הסתר אזורי קטגוריה - צריך לבדוק אם יש ילדים *לא מוסתרים*
         document.querySelectorAll('.category-zone').forEach(zone => {
-            const visibleCardsInSection = zone.querySelectorAll('.inspiration-card:not([style*="display: none"])');
-            zone.style.display = visibleCardsInSection.length > 0 ? 'flex' : 'none'; // שימוש ב-flex
+             const visibleCardsInSection = zone.querySelectorAll('.inspiration-card:not(.card-hidden)');
+             zone.style.display = visibleCardsInSection.length > 0 ? 'flex' : 'none';
         });
+
 
         // הודעת "אין תוצאות"
-        const existingNoResultsMsg = studioDashboard.querySelector('.no-results-message');
-        if (!hasVisibleCardsOverall && allCards.length > 0) { // בדוק שיש כרטיסיות בכלל
+        const existingNoResultsMsg = elements.studioDashboard.querySelector('.no-results-message');
+        if (!hasVisibleCardsOverall && allCards.length > 0) {
              if (!existingNoResultsMsg) {
                  const msgElement = document.createElement('p');
-                 msgElement.className = 'no-results-message loading-message';
-                 studioDashboard.appendChild(msgElement);
+                 msgElement.className = 'no-results-message loading-message'; // Reuse style
+                 elements.studioDashboard.appendChild(msgElement);
              }
-             studioDashboard.querySelector('.no-results-message').textContent = showingFavorites ? "אין מועדפים התואמים את החיפוש." : "לא נמצאו שימושים התואמים את החיפוש.";
-             studioDashboard.querySelector('.no-results-message').style.display = 'block';
+              const msgText = showingFavorites
+                ? (favorites.length > 0 ? "אין מועדפים התואמים את החיפוש." : "עדיין לא הוספת מועדפים ⭐")
+                : "לא נמצאו שימושים התואמים את החיפוש.";
+             elements.studioDashboard.querySelector('.no-results-message').textContent = msgText;
+             elements.studioDashboard.querySelector('.no-results-message').style.display = 'block';
          } else {
              if (existingNoResultsMsg) existingNoResultsMsg.remove();
          }
@@ -469,40 +485,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleFavoritesView() {
         showingFavorites = !showingFavorites;
-        updateFavoritesButtonVisualState(); // עדכון הכפתור הראשי
-        updateCardsVisualState(); // עדכון התצוגה
+        updateFavoritesButtonVisualState(); // Update the toggle button appearance and ARIA
+        updateCardsVisualState(); // Update the displayed cards
     }
 
-    // עדכון ויזואלי ומצב ARIA לכפתור המועדפים הראשי
     function updateFavoritesButtonVisualState() {
-        if (!favoritesToggleBtn) return;
-        favoritesToggleBtn.classList.toggle('active', showingFavorites);
-        favoritesToggleBtn.setAttribute('aria-pressed', showingFavorites.toString());
+        if (!elements.favoritesToggleBtn) return;
+        elements.favoritesToggleBtn.classList.toggle('active', showingFavorites);
+        elements.favoritesToggleBtn.setAttribute('aria-pressed', showingFavorites.toString());
         const newTitle = showingFavorites ? "הצג את כל השימושים" : "הצג מועדפים בלבד";
-        favoritesToggleBtn.title = newTitle;
-        favoritesToggleBtn.setAttribute('aria-label', newTitle);
+        elements.favoritesToggleBtn.title = newTitle;
+        elements.favoritesToggleBtn.setAttribute('aria-label', newTitle);
     }
 
     // --- Setup Event Listeners ---
     function setupEventListeners() {
-        // בדיקה שכל האלמנטים קיימים לפני הוספת מאזינים
-        if (closePanelBtn) closePanelBtn.addEventListener('click', hideDetails);
-        if (favoriteBtn) favoriteBtn.addEventListener('click', toggleFavorite);
-        if (searchInput) searchInput.addEventListener('input', handleSearch);
-        if (favoritesToggleBtn) favoritesToggleBtn.addEventListener('click', toggleFavoritesView);
+        // Use cached elements and check existence
+        if (elements.closePanelBtn) elements.closePanelBtn.addEventListener('click', hideDetails);
+        if (elements.favoriteBtn) elements.favoriteBtn.addEventListener('click', toggleFavorite);
+        if (elements.searchInput) elements.searchInput.addEventListener('input', handleSearch);
+        if (elements.favoritesToggleBtn) elements.favoritesToggleBtn.addEventListener('click', toggleFavoritesView);
 
-        // סגירת הפאנל בלחיצה מחוץ לו
-        document.addEventListener('click', (event) => {
-            if (!detailPanel || !detailPanel.classList.contains('visible')) return;
-            // ודא שהלחיצה לא היתה על הפאנל, וגם לא על כרטיסיה שפותחת אותו
-            if (!detailPanel.contains(event.target) && !event.target.closest('.inspiration-card')) {
-                 hideDetails();
-            }
-        });
+        // Close panel on outside click (click on app container but not on panel or card)
+        if (elements.appContainer && elements.detailPanel) {
+            elements.appContainer.addEventListener('click', (event) => {
+                if (!elements.detailPanel.classList.contains('visible')) return;
+                // Check if the click was outside the panel and not on a card that triggered the opening
+                if (!elements.detailPanel.contains(event.target) && !event.target.closest('.inspiration-card')) {
+                     hideDetails();
+                }
+            });
+        }
 
-        // סגירת הפאנל במקש Escape
+        // Close panel with Escape key
          document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && detailPanel && detailPanel.classList.contains('visible')) {
+            if (e.key === 'Escape' && elements.detailPanel && elements.detailPanel.classList.contains('visible')) {
                 hideDetails();
             }
          });
