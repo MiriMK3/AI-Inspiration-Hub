@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI L&D Studio | סטודיו ההשראה ל-AI בלמידה v4</title> {/* עדכון גירסה בכותרת */}
+    <title>AI L&D Studio | סטודיו ההשראה ל-AI בלמידה v5</title> {/* עדכון גירסה סופי */}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -14,7 +14,11 @@
     <div id="app-container">
         <header>
             <div class="header-content">
-                <h1><span class="logo-icon" aria-hidden="true">💡</span> <span class="header-title-text">AI L&D Studio</span></h1>
+                {/* הפיכת הכותרת לקישור/כפתור איפוס */}
+                <h1 id="main-title" tabindex="0" role="button" aria-label="חזרה לתצוגה ראשית">
+                    <span class="logo-icon" aria-hidden="true">💡</span>
+                    <span class="header-title-text">AI L&D Studio</span>
+                </h1>
                 <div class="controls">
                     <input type="search" id="search-input" placeholder="חיפוש שימוש..." aria-label="חיפוש שימוש">
                     <button id="favorites-toggle-btn" title="הצג מועדפים בלבד" aria-label="הצג מועדפים בלבד" aria-pressed="false">⭐</button>
@@ -29,7 +33,7 @@
                 <div class="spinner"></div>
                 <p>טוען את הסטודיו...</p>
             </div>
-            {/* אזורי הקטגוריות יתווספו כאן על ידי JavaScript */}
+            {/* אזורי הקטגוריות יתווספו כאן */}
         </main>
 
         <footer>
