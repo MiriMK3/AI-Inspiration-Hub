@@ -10,10 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
         closePanelBtn: document.getElementById('close-panel-btn'),
         detailTitle: document.getElementById('detail-title'),
         detailCategory: document.getElementById('detail-category'),
-        detailCategorySpan: document.getElementById('detail-category'),
+        detailCategorySpan: document.getElementById('detail-category'), // Target the span specifically
         detailDescription: document.getElementById('detail-description'),
         detailExample: document.getElementById('detail-example'),
-        // detailExampleStrong is no longer needed as we removed the strong tag
+        // detailExampleStrong is no longer needed
         relatedList: document.getElementById('related-list'),
         relatedContainer: document.getElementById('related-container'),
         favoriteBtn: document.getElementById('favorite-btn'),
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         favoritesToggleBtn: document.getElementById('favorites-toggle-btn'),
         statusMessageContainer: document.getElementById('status-message-container'),
         initialLoader: document.getElementById('initial-loader'),
-        resetViewBtn: document.getElementById('reset-view-btn') // Renamed from mainTitle
+        resetViewBtn: document.getElementById('reset-view-btn') // Added reset button
     };
 
     // --- State ---
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLoading = false;
 
     // --- Constants & Initial Setup ---
-    const LS_FAVORITES_KEY = 'aiLndFavorites_v5'; // Bump version if schema changes significantly
+    const LS_FAVORITES_KEY = 'aiLndFavorites_v5'; // Keep v5 key or bump if needed
     let CATEGORIES = [];
     let CATEGORY_ICONS = {};
     let categoryColors = [];
@@ -389,31 +389,29 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCardsVisualState();
         if (elements.detailPanel.classList.contains('visible')) hideDetails();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        // displayStatusMessage("התצוגה אופסה.", "info"); // אפשר להסיר את ההודעה אם היא מציקה
+        // displayStatusMessage("התצוגה אופסה.", "info"); // Commented out - might be annoying
      }
 
     // --- Setup Event Listeners ---
     function setupEventListeners() {
+        // Attach listeners only if elements exist
         if (elements.closePanelBtn) elements.closePanelBtn.addEventListener('click', hideDetails);
         if (elements.favoriteBtn) elements.favoriteBtn.addEventListener('click', toggleFavorite);
         if (elements.searchInput) elements.searchInput.addEventListener('input', handleSearch);
         if (elements.favoritesToggleBtn) elements.favoritesToggleBtn.addEventListener('click', toggleFavoritesView);
+        if (elements.resetViewBtn) elements.resetViewBtn.addEventListener('click', resetView); // Listener for reset button
 
-        // *** תיקון: מאזין לכפתור האיפוס ***
-        if (elements.resetViewBtn) {
-            elements.resetViewBtn.addEventListener('click', resetView);
-            // אין צורך ב-keydown נפרד, כפתור מקבל מיקוד ואירוע קליק ממילא
-        }
-
-        // Close panel on outside click (same as v5)
-        if (elements.appContainer && elements.detailPanel) {
+        // Close panel on outside click (Improved)
+        if (elements.detailPanel) {
             document.body.addEventListener('click', (event) => {
                 if (!elements.detailPanel.classList.contains('visible')) return;
-                if (!elements.detailPanel.contains(event.target) && !event.target.closest('.inspiration-card') && event.target !== elements.favoritesToggleBtn && !event.target.closest('#reset-view-btn')) {
-                     hideDetails();
+                 // Check if the click target or its parent is the panel, card, or a button that shouldn't close the panel
+                if (!event.target.closest('#detail-panel') && !event.target.closest('.inspiration-card') && !event.target.closest('#favorites-toggle-btn') && !event.target.closest('#reset-view-btn')) {
+                    hideDetails();
                 }
-            }, true);
+            }, true); // Capture phase might be more reliable here
         }
+
         // Close panel with Escape key (same as v5)
          document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && elements.detailPanel && elements.detailPanel.classList.contains('visible')) {
