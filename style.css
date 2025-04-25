@@ -1,29 +1,31 @@
-/* --- הגדרות בסיס ומשתנים (כמו v4) --- */
+/* === AI L&D Studio Styles v6 - Fixed & Enhanced === */
+
+/* --- הגדרות בסיס ומשתנים (משולב מ-v5 עם תיקונים) --- */
 :root {
     --font-primary: 'Assistant', sans-serif;
-    --bg-gradient-start: #f0f4f8; /* מעט שונה */
+    --bg-gradient-start: #f0f4f8;
     --bg-gradient-end: #ffffff;
-    --text-color-primary: #2c3e50; /* כהה יותר */
+    --text-color-primary: #2c3e50;
     --text-color-secondary: #5a6a7a;
-    --primary-accent: #2979ff; /* כחול חי יותר */
-    --secondary-accent: #673ab7; /* סגול עמוק */
-    --highlight-yellow: #ffc107; /* צהוב בהיר יותר */
-    --card-bg: rgba(255, 255, 255, 0.95); /* טיפה פחות שקוף */
-    --card-shadow: 0 4px 10px rgba(41, 121, 255, 0.06); /* צל עדין יותר */
+    --primary-accent: #2979ff;
+    --secondary-accent: #673ab7;
+    --highlight-yellow: #ffc107;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --card-shadow: 0 4px 10px rgba(41, 121, 255, 0.06);
     --card-hover-shadow: 0 7px 18px rgba(41, 121, 255, 0.1);
-    --panel-bg: #ffffff; /* פאנל אטום */
+    --panel-bg: #ffffff;
     --panel-shadow: -10px 0 35px rgba(0, 0, 0, 0.12);
-    --border-light: #e1e9f0; /* גבול מעט בהיר יותר */
+    --border-light: #e1e9f0;
     --header-height: 70px;
     --transition-speed: 0.3s;
     --transition-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
     --card-border-radius: 12px;
     --panel-border-radius: 18px 0 0 18px;
-    /* פלטת צבעים מעודכנת */
+    /* פלטת צבעים מתוקנת */
     --cat-colors:
         #e57373, /* Red */
         #ffb74d, /* Orange */
-        #ffca28, /* Amber - תחליף לצהוב הבעייתי */
+        #ffca28, /* Amber - תחליף לצהוב */
         #81c784, /* Green */
         #4fc3f7, /* Light Blue */
         #64b5f6, /* Blue */
@@ -36,46 +38,17 @@
 /* --- סגנונות בסיס וגוף --- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body {
-    font-family: var(--font-primary);
-    background: linear-gradient(145deg, var(--bg-gradient-start), var(--bg-gradient-end));
-    color: var(--text-color-primary);
-    line-height: 1.7;
-    min-height: 100vh;
-    display: flex;
-    overflow-x: hidden;
-}
+body { font-family: var(--font-primary); background: linear-gradient(145deg, var(--bg-gradient-start), var(--bg-gradient-end)); color: var(--text-color-primary); line-height: 1.7; min-height: 100vh; display: flex; overflow-x: hidden; }
 #app-container { display: flex; flex-direction: column; flex-grow: 1; width: 100%; }
 
 /* --- Header --- */
 header { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); position: sticky; top: 0; z-index: 100; width: 100%; height: var(--header-height); }
 .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 1800px; margin: 0 auto; padding: 0 30px; height: 100%; }
-/* שינוי: h1 הוא רק עטיפה */
-header h1 { font-size: inherit; font-weight: inherit; margin: 0; padding: 0; display: inline-block; /* או flex */ }
-/* עיצוב הכפתור של הכותרת */
-.reset-button {
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    font-family: inherit; /* יורש פונט */
-    font-size: 1.7em; /* גודל טקסט הכותרת */
-    font-weight: 700;
-    color: var(--text-color-primary);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: color var(--transition-speed) ease;
-}
-.reset-button:hover, .reset-button:focus {
-    color: var(--primary-accent); /* שינוי צבע בריחוף/מיקוד */
-    outline: none; /* הסרת outline ברירת מחדל */
-}
-.reset-button:hover .logo-icon, .reset-button:focus .logo-icon {
-     filter: drop-shadow(0 2px 5px rgba(41, 121, 255, 0.5)); /* הדגשת צל האייקון */
-}
-
+header h1 { font-size: inherit; font-weight: inherit; margin: 0; padding: 0; display: inline-block; }
+/* עיצוב כפתור האיפוס */
+.reset-button { background: none; border: none; padding: 0; margin: 0; font-family: inherit; font-size: 1.7em; font-weight: 700; color: var(--text-color-primary); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: color var(--transition-speed) ease; }
+.reset-button:hover, .reset-button:focus { color: var(--primary-accent); outline: none; }
+.reset-button:hover .logo-icon, .reset-button:focus .logo-icon { filter: drop-shadow(0 2px 5px rgba(41, 121, 255, 0.5)); }
 .logo-icon { font-size: 1.7em; color: var(--primary-accent); filter: drop-shadow(0 1px 2px rgba(41, 121, 255, 0.2)); transition: filter var(--transition-speed) ease;}
 .controls { display: flex; gap: 15px; align-items: center; }
 #search-input { padding: 10px 20px; border-radius: 25px; border: 1px solid var(--border-light); background-color: #fff; color: var(--text-color-secondary); min-width: 300px; transition: all var(--transition-speed) ease; font-family: var(--font-primary); font-size: 0.95em; outline: none; }
@@ -91,8 +64,8 @@ header h1 { font-size: inherit; font-weight: inherit; margin: 0; padding: 0; dis
 .status-message.error { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
 .status-message.info { background-color: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
 
-/* --- Dashboard Layout (כמו v5) --- */
-#studio-dashboard { padding: 25px; max-width: 1800px; margin: 0 auto; flex-grow: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 25px; }
+/* --- Dashboard Layout (חזרה לפריסה של v5 עם שיפורים) --- */
+#studio-dashboard { padding: 25px; max-width: 1800px; margin: 0 auto; flex-grow: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* רוחב מינימלי מעט גדול יותר */ gap: 25px; }
 
 /* --- טוען ראשוני (כמו v5) --- */
 #initial-loader { grid-column: 1 / -1; text-align: center; padding: 50px 0; color: var(--text-color-secondary); }
@@ -104,29 +77,32 @@ header h1 { font-size: inherit; font-weight: inherit; margin: 0; padding: 0; dis
 .category-zone { background-color: var(--card-bg); border-radius: var(--card-border-radius); box-shadow: var(--card-shadow); padding: 0; display: flex; flex-direction: column; opacity: 0; transform: translateY(15px); animation: fadeInUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; transition: box-shadow var(--transition-speed) ease, transform var(--transition-speed) ease; overflow: hidden; }
 .category-zone:hover { transform: translateY(-5px); box-shadow: var(--card-hover-shadow); }
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-.category-zone:nth-child(1) { animation-delay: 0.1s; } .category-zone:nth-child(2) { animation-delay: 0.15s; }
+/* השהיית אנימציה */
+.category-zone:nth-child(1) { animation-delay: 0.1s; } .category-zone:nth-child(2) { animation-delay: 0.15s; } .category-zone:nth-child(3) { animation-delay: 0.2s; } .category-zone:nth-child(4) { animation-delay: 0.25s; } .category-zone:nth-child(5) { animation-delay: 0.3s; } .category-zone:nth-child(6) { animation-delay: 0.35s; }
 /* ... וכו' ... */
 
-/* --- כותרת קטגוריה (כמו v5) --- */
+
+/* --- כותרת קטגוריה (עיצוב v5) --- */
 .category-header { display: flex; align-items: center; gap: 12px; padding: 15px 20px; background: var(--category-color, var(--primary-accent)); color: #fff; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); border-bottom: 1px solid rgba(0,0,0,0.07); }
 .category-icon { font-size: 1.5em; line-height: 1; opacity: 1; }
 .category-title { font-size: 1.2em; font-weight: 700; color: inherit; margin: 0; flex-grow: 1; }
 
-/* --- גריד כרטיסיות (כמו v5) --- */
-.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); grid-auto-rows: 1fr; gap: 15px; padding: 20px; flex-grow: 1; align-content: start;}
+/* --- גריד כרטיסיות (שיפור גובה אחיד) --- */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); grid-auto-rows: 1fr; /* חשוב לגובה אחיד */ gap: 15px; padding: 20px; flex-grow: 1; align-content: start; }
 
-/* --- כרטיסיית השראה (כמו v5) --- */
-.inspiration-card { background: #fff; border-radius: 10px; padding: 15px; cursor: pointer; transition: all var(--transition-speed) ease; display: flex; flex-direction: column; justify-content: space-between; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid transparent; }
+/* --- כרטיסיית השראה (עם גובה אחיד משופר) --- */
+.inspiration-card { background: #fff; border-radius: 10px; padding: 15px; cursor: pointer; transition: all var(--transition-speed) ease; display: flex; flex-direction: column; /* חשוב */ justify-content: space-between; /* חשוב */ position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid transparent; }
 .inspiration-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%); opacity: 0; transition: opacity var(--transition-speed) ease; z-index: 0; border-radius: inherit; pointer-events: none; }
 .inspiration-card:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 7px 18px rgba(41, 121, 255, 0.09); border-color: rgba(41, 121, 255, 0.3); }
 .inspiration-card:hover::before { opacity: 0.6; }
-.card-content { display: flex; align-items: flex-start; gap: 10px; position: relative; z-index: 1; flex-grow: 1; }
+
+.card-content { display: flex; align-items: flex-start; gap: 10px; position: relative; z-index: 1; flex-grow: 1; /* גורם לתוכן למלא את המקום */ margin-bottom: 5px; /* רווח קטן לפני האינדיקטור אם רוצים */ }
 .card-id { background: var(--category-color, var(--primary-accent)); color: white; font-weight: bold; border-radius: 6px; width: 28px; height: 28px; display: inline-flex; justify-content: center; align-items: center; font-size: 0.85em; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: background-color var(--transition-speed) ease; margin-top: 1px; }
 .card-title { font-weight: 600; color: var(--text-color-primary); font-size: 0.95em; line-height: 1.4; margin: 0; flex-grow: 1; }
 .card-favorite-indicator { position: absolute; top: 8px; left: 8px; color: var(--highlight-yellow); font-size: 1.3em; opacity: 0; transform: scale(0.5) rotate(-15deg); transition: all var(--transition-speed) var(--transition-bounce); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); pointer-events: none; }
 .inspiration-card.is-favorite .card-favorite-indicator { opacity: 1; transform: scale(1) rotate(0deg); }
 
-/* הדגשה והסתרה (כמו v5) */
+/* הדגשה והסתרה */
 .inspiration-card.highlight { border-color: var(--primary-accent); box-shadow: 0 0 0 2px var(--primary-accent), 0 6px 18px rgba(41, 121, 255, 0.1); transform: translateY(-2px) scale(1.01); }
 .inspiration-card.card-hidden { display: none !important; }
 
@@ -137,13 +113,9 @@ header h1 { font-size: inherit; font-weight: inherit; margin: 0; padding: 0; dis
 .panel-content-wrapper { padding: 0; position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; flex-direction: column; }
 #close-panel-btn { position: absolute; top: 20px; left: 25px; background: rgba(0,0,0,0.06); border: none; color: var(--text-color-secondary); font-size: 1.7em; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; justify-content: center; align-items: center; line-height: 1; transition: all var(--transition-speed) ease; z-index: 10; }
 #close-panel-btn:hover { color: var(--text-color-primary); background-color: rgba(0,0,0,0.1); transform: rotate(180deg) scale(1.1); }
-
-/* ספינר טעינה (כמו v5) */
 #panel-loader { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); display: flex; justify-content: center; align-items: center; z-index: 5; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
 #detail-panel.loading #panel-loader { opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0s 0s; }
 .spinner { width: 45px; height: 45px; border: 5px solid var(--border-light); border-top-color: var(--primary-accent); border-radius: 50%; animation: spin 1s linear infinite; }
-
-/* תוכן הפאנל (כמו v5) */
 #detail-content { overflow-y: auto; flex-grow: 1; padding: 70px 30px 35px 30px; scrollbar-width: thin; scrollbar-color: var(--primary-accent) var(--bg-gradient-start); }
 #detail-content::-webkit-scrollbar { width: 7px; } #detail-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px;} #detail-content::-webkit-scrollbar-thumb { background-color: var(--primary-accent); border-radius: 3px;}
 #detail-content h2 { font-size: 1.7em; font-weight: 700; color: var(--primary-accent); margin-bottom: 12px; line-height: 1.3; }
@@ -153,7 +125,7 @@ header h1 { font-size: inherit; font-weight: inherit; margin: 0; padding: 0; dis
 #detail-content p#detail-description { margin-bottom: 25px; color: var(--text-color-primary); font-size: 1.05em; }
 #detail-content .example { background-color: #f1f5f9; padding: 18px; border-radius: 8px; margin: 25px 0; border-left: 5px solid var(--secondary-accent); color: #334155; position: relative; font-style: italic; }
 #detail-content .example::before { content: 'דוגמה'; position: absolute; top: -10px; right: 12px; background-color: var(--secondary-accent); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75em; font-weight: 600; font-style: normal; }
-#detail-content .example strong { display: none; } /* מסתיר "דוגמה:" טקסטואלי */
+#detail-content .example strong { display: none; } /* הסתרת strong */
 #related-container { margin-top: 30px; border-top: 1px solid var(--border-light); padding-top: 25px; }
 #related-container p strong { font-weight: 700; color: var(--text-color-secondary); font-size: 1.1em; }
 #related-list { margin: 15px 0 0 0; list-style: none; padding: 0;}
@@ -161,8 +133,6 @@ header h1 { font-size: inherit; font-weight: inherit; margin: 0; padding: 0; dis
 #related-list a { color: var(--primary-accent); font-weight: 600; font-size: 1em; padding-bottom: 3px; text-decoration: none; display: inline-block; position: relative; }
 #related-list a::after { content: ''; position: absolute; width: 0; height: 1px; display: block; margin-top: 2px; right: 0; background: var(--primary-accent); transition: width var(--transition-speed) ease; }
 #related-list a:hover::after { width: 100%; left: 0; }
-
-/* כפתור מועדפים (כמו v5) */
 #favorite-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px 20px; margin-top: 35px; background: var(--primary-accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1.15em; font-weight: 700; transition: all var(--transition-speed) ease; font-family: var(--font-primary); box-shadow: 0 4px 15px rgba(41, 121, 255, 0.2); }
 #favorite-btn:hover { background: #1e68d6; transform: translateY(-3px); box-shadow: 0 7px 20px rgba(41, 121, 255, 0.3); }
 #favorite-btn:active { transform: translateY(0px) scale(0.97); box-shadow: 0 2px 8px rgba(41, 121, 255, 0.2); }
@@ -172,19 +142,29 @@ header h1 { font-size: inherit; font-weight: inherit; margin: 0; padding: 0; dis
 /* --- Footer (כמו v5) --- */
 footer { text-align: center; padding: 25px; background-color: transparent; color: var(--text-color-secondary); font-size: 0.95em; font-weight: 300; margin-top: 40px; border-top: 1px solid var(--border-light); }
 
-/* --- Media Queries משופרים (כמו v5) --- */
+/* --- Media Queries (כמו v5, עם התאמות קלות אם צריך) --- */
+/* (העתק את ה-Media Queries מ-v5 לכאן) */
 @media (max-width: 1400px) { .header-content, #studio-dashboard { max-width: 1300px; } }
 @media (max-width: 1200px) { .header-content, #studio-dashboard { max-width: 1100px; padding: 0 20px; } #studio-dashboard { padding: 25px 20px; gap: 20px; } }
-@media (max-width: 992px) { #studio-dashboard { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } .header-content { padding: 0 15px;} header h1 { font-size: 1.5em; } #search-input { min-width: 180px; } } /* הקטנת רוחב מינימלי לכרטיסיות */
+@media (max-width: 992px) {
+    #studio-dashboard { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .header-content { padding: 0 15px;} header h1 { font-size: 1.5em; }
+    #search-input { min-width: 180px; }
+    .reset-button { font-size: 1.5em;} /* הקטנת כפתור איפוס */
+}
 @media (max-width: 768px) {
      :root { --header-height: 60px; }
-     header h1 { font-size: 1.2em; gap: 8px; } .logo-icon { font-size: 1.4em;} .controls { gap: 8px; }
-     #search-input { flex-grow: 1; margin-left: 8px; padding: 8px 15px; font-size: 0.9em;} .controls button { width: 40px; height: 40px; font-size: 1.4em;}
-     #studio-dashboard { padding: 15px; gap: 12px; } /* הקטנת רווח */ .category-zone { padding: 0 12px 12px 12px; border-radius: 10px; } /* הקטנת פאדינג */
+     header h1 { font-size: 1.2em; gap: 8px; }
+     .reset-button { font-size: 1.2em;} /* הקטנת כפתור איפוס */
+     .logo-icon { font-size: 1.4em;} .controls { gap: 8px; }
+     #search-input { flex-grow: 1; margin-left: 8px; padding: 8px 15px; font-size: 0.9em;}
+     .controls button { width: 40px; height: 40px; font-size: 1.4em;}
+     #studio-dashboard { padding: 15px; gap: 12px; } /* רווח קטן יותר */
+     .category-zone { padding: 0 12px 12px 12px; border-radius: 10px; }
      .category-header { padding: 10px 12px; margin: 0 -12px 12px -12px;} .category-title { font-size: 1.05em; } .category-icon { font-size: 1.3em; }
-     .card-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; padding: 0 0 5px 0;} /* עוד יותר צפוף */
-     .inspiration-card { padding: 10px; min-height: 80px; border-radius: 6px;} .card-content { gap: 6px; } /* הקטנת רווח */
-     .card-id { width: 22px; height: 22px; font-size: 0.7em; } .card-title { font-size: 0.8em; line-height: 1.3; }
+     .card-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; padding: 0 0 5px 0;} /* עוד יותר צפוף */
+     .inspiration-card { padding: 10px; border-radius: 8px;} .card-content { gap: 6px; }
+     .card-id { width: 24px; height: 24px; font-size: 0.75em; } .card-title { font-size: 0.85em; line-height: 1.3; }
      #detail-panel { width: 95%; border-radius: 15px 0 0 15px; } .panel-content-wrapper { padding: 0;}
      #close-panel-btn { top: 12px; left: 12px; font-size: 1.7em; width: 32px; height: 32px; }
      #detail-content { padding: 55px 20px 25px 20px; } #detail-content h2 { font-size: 1.4em; }
@@ -194,10 +174,12 @@ footer { text-align: center; padding: 25px; background-color: transparent; color
 }
 @media (max-width: 480px) {
     .header-content { flex-direction: column; height: auto; padding: 10px 15px; }
-    header h1 { margin-bottom: 12px; text-align: center; font-size: 1.3em; } .controls { width: 100%; }
+    header h1 { margin-bottom: 12px; text-align: center; }
+    .reset-button { font-size: 1.3em; } /* הקטנת כפתור איפוס */
+    .controls { width: 100%; }
     #studio-dashboard { padding: 10px; gap: 10px; grid-template-columns: repeat(2, 1fr); } /* שני טורים קבועים */
     .category-zone { padding: 0 10px 10px 10px; } .category-header { padding: 10px 10px; margin: 0 -10px 10px -10px;} .category-title { font-size: 1em; }
-    .card-grid { grid-template-columns: 1fr; gap: 8px; padding: 0;} /* טור אחד בתוך הקטגוריה */
+    .card-grid { grid-template-columns: 1fr; gap: 8px; padding: 0;} /* טור אחד */
     .inspiration-card { padding: 8px;} .card-title { font-size: 0.85em; }
     #detail-panel { width: 100%; border-radius: 0; box-shadow: none; right: -100% !important; }
     #close-panel-btn { top: 8px; left: 8px; width: 30px; height: 30px; font-size: 1.6em; }
