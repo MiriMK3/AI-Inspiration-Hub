@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Element Caching ---
     const elements = {
-        // ... (אותו דבר כמו ב-v4, ודאי שהכל קיים) ...
         appContainer: document.getElementById('app-container'),
         studioDashboard: document.getElementById('studio-dashboard'),
         detailPanel: document.getElementById('detail-panel'),
@@ -14,14 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
         detailCategorySpan: document.getElementById('detail-category'),
         detailDescription: document.getElementById('detail-description'),
         detailExample: document.getElementById('detail-example'),
-        detailExampleStrong: document.getElementById('detail-example')?.querySelector('strong'), // אלמנט ה-strong של הדוגמה
         relatedList: document.getElementById('related-list'),
         relatedContainer: document.getElementById('related-container'),
         favoriteBtn: document.getElementById('favorite-btn'),
         searchInput: document.getElementById('search-input'),
         favoritesToggleBtn: document.getElementById('favorites-toggle-btn'),
         statusMessageContainer: document.getElementById('status-message-container'),
-        initialLoader: document.getElementById('initial-loader')
+        initialLoader: document.getElementById('initial-loader'),
+        mainTitle: document.getElementById('main-title') // הוספת הכותרת הראשית
     };
 
     // --- State ---
@@ -32,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLoading = false;
 
     // --- Constants & Initial Setup ---
-    const LS_FAVORITES_KEY = 'aiLndFavorites_v4'; // עדכון גירסה אם רוצים איפוס
+    const LS_FAVORITES_KEY = 'aiLndFavorites_v4'; // נשתמש במפתח של v4
     let CATEGORIES = [];
     let CATEGORY_ICONS = {};
     let categoryColors = [];
@@ -58,17 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Helper Functions ---
-    function validateDependencies() { /* (Same as v4) */
+    function validateDependencies() {
         for (const key in elements) {
-            // Allow detailExampleStrong to be null initially
-            if (!elements[key] && key !== 'detailExampleStrong') {
+            if (!elements[key] && key !== 'detailExampleStrong') { // Allow optional detailExampleStrong
                 console.error(`Initialization Error: Element '${key}' not found.`);
-                document.body.innerHTML = `<p style="color:red; padding: 20px; text-align:center;">שגיאה קריטית: ${key} לא נמצא.</p>`;
+                document.body.innerHTML = `<p style="color:red; padding: 20px; text-align:center;">שגיאה קריטית: רכיב ${key} לא נמצא.</p>`;
                 return false;
             }
         }
         return true;
-     }
+    }
+
     function displayStatusMessage(message, type = 'info', duration = 3500) { /* (Same as v4) */
         if (!elements.statusMessageContainer) return;
         const messageDiv = document.createElement('div');
@@ -103,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try { localStorage.setItem(LS_FAVORITES_KEY, JSON.stringify(favorites)); }
         catch (e) { console.error("Error saving favorites:", e); displayStatusMessage('שגיאה בשמירת המועדפים.', 'error');}
      }
-    function setupConstants() { /* (Same as v4) */
+     function setupConstants() { /* (Same as v4) */
          CATEGORIES = [...new Set(aiUseCases.map(uc => uc.category).filter(Boolean))];
          CATEGORY_ICONS = { /* Icons dictionary */
             "יצירת תוכן לימודי": "📝", "הערכה ומדידה": "📊", "התאמה אישית (פרסונליזציה)": "⚙️",
@@ -134,17 +133,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!elements.studioDashboard) return;
         elements.studioDashboard.innerHTML = '';
         allCards = [];
-
         const groupedUseCases = aiUseCases.reduce((acc, useCase) => {
             const category = useCase.category || 'אחר';
             if (!acc[category]) acc[category] = [];
             acc[category].push(useCase);
             return acc;
         }, {});
-
         const sortedCategories = CATEGORIES.filter(cat => groupedUseCases[cat]);
         if (groupedUseCases['אחר']) sortedCategories.push('אחר');
-
         sortedCategories.forEach((category, index) => {
             const categoryZone = createCategoryZone(category, index);
             const cardGrid = document.createElement('div');
@@ -228,34 +224,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const useCase = aiUseCases.find(uc => uc.id === useCaseIdNum);
         if (!useCase) {
             handleLoadError(`שגיאה: לא נמצא שימוש מספר ${useCaseIdNum}.`);
-            hideDetails();
-            elements.detailPanel.classList.remove('loading');
-            isLoading = false;
+            hideDetails(); elements.detailPanel.classList.remove('loading'); isLoading = false;
             return;
         }
         currentUseCaseId = useCaseIdNum;
-        populatePanelContent(useCase); // Populate first
+        populatePanelContent(useCase);
         elements.detailPanel.setAttribute('aria-hidden', 'false');
-        elements.detailPanel.classList.add('visible'); // Then show
+        elements.detailPanel.classList.add('visible');
         setTimeout(() => { elements.detailPanel.classList.remove('loading'); isLoading = false; }, 50);
      }
-     function clearPanelContent() { /* (Same as v4) */
+     function clearPanelContent() { /* (Same as v4, but no strong tag handling) */
         if (!elements.detailTitle) return;
         elements.detailTitle.textContent = '';
         if (elements.detailCategorySpan) elements.detailCategorySpan.textContent = '';
         elements.detailDescription.textContent = '';
-        elements.detailExample.textContent = ''; // Clear the example text
-        // Remove the strong tag if it exists from previous runs (or ensure CSS handles it)
-        const strongTag = elements.detailExample.querySelector('strong');
-        if (strongTag) strongTag.remove();
-
+        elements.detailExample.textContent = ''; // Clear example text
         elements.relatedList.innerHTML = '';
         if (elements.relatedContainer) elements.relatedContainer.style.display = 'none';
         if (elements.favoriteBtn) elements.favoriteBtn.style.visibility = 'hidden';
         if (elements.detailCategorySpan) { elements.detailCategorySpan.style.color = ''; elements.detailCategorySpan.style.borderBottomColor = ''; }
      }
 
-    function populatePanelContent(useCase) {
+    function populatePanelContent(useCase) { /* (Updated for example display) */
         if (!elements.detailTitle || !elements.detailExample) return;
 
         elements.detailTitle.textContent = `${useCase.id}. ${useCase.title || ''}`;
@@ -271,10 +261,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.detailDescription.textContent = useCase.description || 'אין תיאור זמין.';
 
-        // *** תיקון כפילות "דוגמה" ***
-        // הצג רק את הטקסט של הדוגמה, התווית הסגולה מגיעה מ-CSS
-        elements.detailExample.textContent = useCase.example || 'אין דוגמה זמינה.';
-        elements.detailExample.style.display = useCase.example ? 'block' : 'none'; // הסתר אם אין דוגמה
+        // *** תיקון כפילות "דוגמה" - הצג רק טקסט הדוגמה ***
+        elements.detailExample.textContent = useCase.example || '';
+        elements.detailExample.style.display = useCase.example ? 'block' : 'none';
 
 
         // Related items (same as v4)
@@ -313,18 +302,17 @@ document.addEventListener('DOMContentLoaded', () => {
      }
 
     // --- Favorites Logic ---
-    function updateFavoriteButtonAppearance(id) {
+    function updateFavoriteButtonAppearance(id) { /* (Updated text) */
         if (!elements.favoriteBtn) return;
         const useCaseIdNum = parseInt(id, 10);
         const isFav = favorites.includes(useCaseIdNum);
-        // *** תיקון טעות כתיב: "הסר" במקום "הוסר" ***
-        elements.favoriteBtn.innerHTML = isFav ? '⭐ הסר מהמועדפים' : '⭐ הוסף למועדפים';
+        elements.favoriteBtn.innerHTML = isFav ? '⭐ הסר מהמועדפים' : '⭐ הוסף למועדפים'; // Corrected text
         elements.favoriteBtn.classList.toggle('is-favorite', isFav);
         elements.favoriteBtn.setAttribute('aria-pressed', isFav.toString());
         elements.favoriteBtn.setAttribute('aria-label', isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים');
     }
 
-    function toggleFavorite() { /* (Same logic as v4, but relying on fixed updateCardsVisualState) */
+    function toggleFavorite() { /* (Same as v4 - logic fixed there) */
         if (currentUseCaseId === null || !elements.favoriteBtn) return;
         const index = favorites.indexOf(currentUseCaseId);
         const cardElement = allCards.find(card => card && parseInt(card.dataset.id) === currentUseCaseId);
@@ -340,24 +328,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveFavorites();
         updateFavoriteButtonAppearance(currentUseCaseId);
-
-        // *** תיקון באג קטגוריה: עדכון מלא של המצב החזותי אחרי שינוי ***
-        // זה יסתיר/יציג את הכרטיסיה הספציפית אם נמצאים במצב מועדפים
-        updateCardsVisualState();
+        updateCardsVisualState(); // Update main view to reflect favorite change immediately
         updateFavoritesButtonVisualState();
     }
 
     // --- Filtering and Visual State ---
-    function updateCardsVisualState() {
+    function updateCardsVisualState() { /* (Same as v4) */
         if (!elements.studioDashboard || !Array.isArray(allCards)) return;
         const searchTerm = elements.searchInput ? elements.searchInput.value.toLowerCase().trim() : "";
         let hasVisibleCardsOverall = false;
 
         allCards.forEach(card => {
-            if (!card) return; // Safety check
+            if (!card) return;
             const id = parseInt(card.dataset.id);
             const useCase = aiUseCases.find(uc => uc.id === id);
-            if (!useCase) { card.classList.add('card-hidden'); return; }; // Hide if data missing
+            if (!useCase) { card.classList.add('card-hidden'); return; };
 
             const isFavorite = favorites.includes(id);
             card.classList.toggle('is-favorite', isFavorite);
@@ -374,20 +359,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const shouldBeVisible = isMatch && (!showingFavorites || isFavorite);
 
-            // *** שימוש בקלאס להסתרה במקום display:none ישירות ***
             card.classList.toggle('card-hidden', !shouldBeVisible);
             card.classList.toggle('highlight', shouldBeVisible && searchTerm !== '');
 
             if (shouldBeVisible) hasVisibleCardsOverall = true;
         });
 
-        // הצג/הסתר אזורי קטגוריה
         document.querySelectorAll('.category-zone').forEach(zone => {
              const visibleCardsInSection = zone.querySelectorAll('.inspiration-card:not(.card-hidden)');
              zone.style.display = visibleCardsInSection.length > 0 ? 'flex' : 'none';
         });
 
-        // הודעת "אין תוצאות"
         const existingNoResultsMsg = elements.studioDashboard.querySelector('.no-results-message');
         if (!hasVisibleCardsOverall && allCards.length > 0) {
              if (!existingNoResultsMsg) {
@@ -395,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  msgElement.className = 'no-results-message loading-message';
                  elements.studioDashboard.appendChild(msgElement);
              }
-             const msgText = showingFavorites
+              const msgText = showingFavorites
                 ? (favorites.length > 0 ? "אין מועדפים התואמים את החיפוש." : "עדיין לא הוספת מועדפים ⭐")
                 : "לא נמצאו שימושים התואמים את החיפוש.";
              elements.studioDashboard.querySelector('.no-results-message').textContent = msgText;
@@ -404,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
              if (existingNoResultsMsg) existingNoResultsMsg.remove();
          }
     }
+
 
     function handleSearch() { updateCardsVisualState(); }
     function toggleFavoritesView() { showingFavorites = !showingFavorites; updateFavoritesButtonVisualState(); updateCardsVisualState(); }
@@ -416,21 +399,51 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.favoritesToggleBtn.setAttribute('aria-label', newTitle);
      }
 
+     // *** פונקציה חדשה לאיפוס התצוגה ***
+     function resetView() {
+        if (elements.searchInput) elements.searchInput.value = ''; // איפוס שדה חיפוש
+        if (showingFavorites) { // אם היינו במצב מועדפים, בטל אותו
+            showingFavorites = false;
+            updateFavoritesButtonVisualState();
+        }
+        updateCardsVisualState(); // עדכן את התצוגה להציג הכל
+        if (elements.detailPanel.classList.contains('visible')) { // סגור פאנל אם פתוח
+            hideDetails();
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // גלול לראש הדף
+        displayStatusMessage("התצוגה אופסה.", "info");
+     }
+
+
     // --- Setup Event Listeners ---
-    function setupEventListeners() { /* (Same as v4, relying on cached elements) */
+    function setupEventListeners() {
         if (elements.closePanelBtn) elements.closePanelBtn.addEventListener('click', hideDetails);
         if (elements.favoriteBtn) elements.favoriteBtn.addEventListener('click', toggleFavorite);
         if (elements.searchInput) elements.searchInput.addEventListener('input', handleSearch);
         if (elements.favoritesToggleBtn) elements.favoritesToggleBtn.addEventListener('click', toggleFavoritesView);
-        if (elements.appContainer && elements.detailPanel) { /* Close on outside click */
-            document.body.addEventListener('click', (event) => { // Listen on body for wider capture
+
+        // *** הוספת מאזין לכותרת הראשית לאיפוס ***
+        if (elements.mainTitle) {
+            elements.mainTitle.addEventListener('click', resetView);
+            elements.mainTitle.addEventListener('keydown', (e) => {
+                 if (e.key === 'Enter' || e.key === ' ') {
+                     e.preventDefault();
+                     resetView();
+                 }
+            });
+        }
+
+        // Close panel on outside click (same as v4)
+        if (elements.appContainer && elements.detailPanel) {
+            document.body.addEventListener('click', (event) => {
                 if (!elements.detailPanel.classList.contains('visible')) return;
                 if (!elements.detailPanel.contains(event.target) && !event.target.closest('.inspiration-card') && event.target !== elements.favoritesToggleBtn) {
                      hideDetails();
                 }
-            }, true); // Use capture
+            }, true);
         }
-        document.addEventListener('keydown', (e) => { /* Close on Escape */
+        // Close panel with Escape key (same as v4)
+         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && elements.detailPanel && elements.detailPanel.classList.contains('visible')) {
                 hideDetails();
             }
