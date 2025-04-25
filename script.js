@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    const appContainer = document.getElementById('app-container'); // מיכל ראשי
+    const appContainer = document.getElementById('app-container');
     const studioDashboard = document.getElementById('studio-dashboard');
     const detailPanel = document.getElementById('detail-panel');
-    const panelContentWrapper = detailPanel.querySelector('.panel-content-wrapper'); // מיכל פנימי בפאנל
+    const panelContentWrapper = detailPanel.querySelector('.panel-content-wrapper');
     const detailContent = document.getElementById('detail-content');
     const panelLoader = document.getElementById('panel-loader');
     const closePanelBtn = document.getElementById('close-panel-btn');
@@ -17,65 +17,96 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const favoritesToggleBtn = document.getElementById('favorites-toggle-btn');
     const statusMessageContainer = document.getElementById('status-message-container');
+    const initialLoader = document.getElementById('initial-loader'); // טוען ראשוני
 
     // --- State ---
-    let favorites = []; // יאותחל מ-localStorage
+    let favorites = [];
     let currentUseCaseId = null;
     let showingFavorites = false;
     let allCards = [];
-    let isLoading = false; // למנוע פתיחת פאנל כפולה בזמן טעינה
+    let isLoading = false; // למניעת פתיחת פאנל כפולה
 
     // --- Constants & Initial Setup ---
-    const LS_FAVORITES_KEY = 'aiLndFavorites_v3'; // מפתח חדש למקרה שרוצים לאפס
-    let CATEGORIES = []; // יאוכלס מ-data.js
-    let CATEGORY_ICONS = {}; // יאוכלס מ-data.js או ברירות מחדל
-    let categoryColors = []; // יאוכלס מה-CSS
+    const LS_FAVORITES_KEY = 'aiLndFavorites_v3';
+    let CATEGORIES = [];
+    let CATEGORY_ICONS = {};
+    let categoryColors = [];
     const DEFAULT_ICON = "✨";
-    const DEFAULT_CATEGORY_COLOR = '#cccccc'; // צבע אפור כברירת מחדל
+    const DEFAULT_CATEGORY_COLOR = '#777'; // אפור כברירת מחדל
 
     // --- Initialization Function ---
     function initializeApp() {
+        if (!checkDependencies()) return; // בדיקת קיום אלמנטים חיוניים
+
         loadFavorites();
-        setupConstants(); // הגדרת קבועים אחרי שה-DOM מוכן
+        setupConstants();
 
         if (typeof aiUseCases === 'undefined' || !Array.isArray(aiUseCases) || aiUseCases.length === 0) {
-            displayStatusMessage('שגיאה חמורה: לא ניתן היה לטעון את רשימת השימושים.', 'error');
+            handleLoadError('שגיאה חמורה: לא ניתן היה לטעון את רשימת השימושים. בדוק את קובץ data.js.');
             return;
         }
 
-        renderStudioDashboard();
-        setupEventListeners();
-        updateFavoritesButtonVisualState(); // עדכון כפתור ראשי
+        renderStudioDashboard(); // רינדור ראשוני
+        setupEventListeners(); // הגדרת מאזינים
+        updateFavoritesButtonVisualState(); // עדכון מראה כפתור המועדפים
+
+        // הסתרת טוען ראשוני
+        if (initialLoader) initialLoader.style.display = 'none';
     }
 
     // --- Helper Functions ---
 
-    function displayStatusMessage(message, type = 'info') {
+    function checkDependencies() {
+        const requiredElements = [studioDashboard, detailPanel, panelContentWrapper, detailContent, panelLoader, closePanelBtn, detailTitle, detailCategory, detailDescription, detailExample, relatedList, relatedContainer, favoriteBtn, searchInput, favoritesToggleBtn, statusMessageContainer, initialLoader];
+        if (requiredElements.some(el => !el)) {
+            console.error("שגיאה קריטית: אחד או יותר מאלמנטי ה-DOM הנדרשים לא נמצאו. בדוק את ה-HTML.");
+            // אפשר להציג הודעה למשתמש כאן אם רוצים
+            return false;
+        }
+        return true;
+    }
+
+
+    function displayStatusMessage(message, type = 'info', duration = 5000) {
         if (!statusMessageContainer) return;
         const messageDiv = document.createElement('div');
         messageDiv.textContent = message;
-        messageDiv.className = `status-message ${type}`; // Apply type class
-        statusMessageContainer.innerHTML = ''; // Clear previous messages
+        messageDiv.className = `status-message ${type}`;
+        messageDiv.setAttribute('role', 'alert'); // נגישות
+
+        // הסרת הודעות קודמות לפני הוספת חדשה
+        while (statusMessageContainer.firstChild) {
+            statusMessageContainer.removeChild(statusMessageContainer.firstChild);
+        }
         statusMessageContainer.appendChild(messageDiv);
 
-        // Optional: auto-hide message after a few seconds
-        setTimeout(() => {
-            messageDiv.style.transition = 'opacity 0.5s ease';
-            messageDiv.style.opacity = '0';
-            setTimeout(() => messageDiv.remove(), 500);
-        }, 5000); // Hide after 5 seconds
+        // הסרה אוטומטית
+        if (duration > 0) {
+            setTimeout(() => {
+                messageDiv.style.transition = 'opacity 0.5s ease';
+                messageDiv.style.opacity = '0';
+                setTimeout(() => messageDiv.remove(), 500);
+            }, duration);
+        }
+    }
+
+    function handleLoadError(message) {
+        console.error(message);
+        if (initialLoader) initialLoader.style.display = 'none'; // הסתר טוען ראשוני
+        displayStatusMessage(message, 'error', 0); // הודעת שגיאה קבועה
     }
 
     function loadFavorites() {
         try {
-            favorites = JSON.parse(localStorage.getItem(LS_FAVORITES_KEY)) || [];
-            if (!Array.isArray(favorites)) { // בדיקת תקינות
+            const storedFavorites = localStorage.getItem(LS_FAVORITES_KEY);
+            favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
+            if (!Array.isArray(favorites)) {
                  favorites = [];
-                 console.warn("נתוני מועדפים פגומים ב-localStorage, אופס.");
-                 localStorage.removeItem(LS_FAVORITES_KEY); // ניקוי נתונים פגומים
+                 console.warn("נתוני מועדפים פגומים, אופס.");
+                 localStorage.removeItem(LS_FAVORITES_KEY);
             }
         } catch (e) {
-            console.error("שגיאה בקריאת מועדפים מ-localStorage:", e);
+            console.error("שגיאה בקריאת מועדפים:", e);
             favorites = [];
             displayStatusMessage('לא ניתן היה לטעון את המועדפים השמורים.', 'error');
         }
@@ -85,17 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
              localStorage.setItem(LS_FAVORITES_KEY, JSON.stringify(favorites));
         } catch (e) {
-            console.error("שגיאה בשמירת מועדפים ל-localStorage:", e);
+            console.error("שגיאה בשמירת מועדפים:", e);
             displayStatusMessage('שגיאה בשמירת המועדפים.', 'error');
         }
     }
 
     function setupConstants() {
-         // אתחול קטגוריות ייחודיות
          CATEGORIES = [...new Set(aiUseCases.map(uc => uc.category).filter(Boolean))];
-
-         // הגדרת אייקונים (ניתן להרחיב)
-          CATEGORY_ICONS = {
+         CATEGORY_ICONS = { /* אותם אייקונים כמו בקוד הקודם */
             "יצירת תוכן לימודי": "📝", "הערכה ומדידה": "📊", "התאמה אישית (פרסונליזציה)": "⚙️",
             "ניהול ידע ומאגרי מידע": "📚", "פיתוח חומרי עזר": "🛠️", "הנגשת מידע": "🌐",
             "תקשורת, מעורבות והטמעה": "💬", "ניתוח נתונים וקבלת החלטות": "📈",
@@ -105,32 +133,30 @@ document.addEventListener('DOMContentLoaded', () => {
             "יצירתיות, חדשנות ותכנון אסטרטגי": "💡", "תמיכה והכלה": "❤️",
             "ניהול פרויקטים והכשרת סגל": "📋", "שימושים מתקדמים ועתידיים": "🔮",
              "אחר": "✨"
-        };
-
-         // קריאת צבעי קטגוריות מ-CSS
+         };
          try {
             const cssVariables = getComputedStyle(document.documentElement);
             const colorsString = cssVariables.getPropertyValue('--cat-colors').trim();
             if (colorsString) {
                 categoryColors = colorsString.split(',').map(color => color.trim());
-            } else {
-                 console.warn("--cat-colors CSS variable not found or empty.");
-                 categoryColors = Array(10).fill(DEFAULT_CATEGORY_COLOR); // ברירת מחדל אם לא נמצאו
-            }
+                if(categoryColors.length < 10) { // ודא שיש מספיק צבעים
+                   console.warn("Not enough category colors defined in --cat-colors CSS variable.");
+                   categoryColors = [...categoryColors, ...Array(10 - categoryColors.length).fill(DEFAULT_CATEGORY_COLOR)];
+                }
+            } else { throw new Error("--cat-colors not found"); }
          } catch (e) {
-             console.error("Error reading CSS variables:", e);
+             console.error("Error reading CSS category colors:", e);
              categoryColors = Array(10).fill(DEFAULT_CATEGORY_COLOR);
          }
     }
 
-     // --- Rendering Functions ---
+    // --- Rendering Functions ---
 
     function renderStudioDashboard() {
         if (!studioDashboard) return;
-        studioDashboard.innerHTML = ''; // ניקוי לפני רינדור
+        studioDashboard.innerHTML = ''; // ניקוי
         allCards = [];
 
-        // קיבוץ לפי קטגוריה
         const groupedUseCases = aiUseCases.reduce((acc, useCase) => {
             const category = useCase.category || 'אחר';
             if (!acc[category]) acc[category] = [];
@@ -138,12 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return acc;
         }, {});
 
-        // מיון הקטגוריות לפי הסדר שהוגדר ב-CATEGORIES
-         const sortedCategories = CATEGORIES.filter(cat => groupedUseCases[cat]);
-         if (groupedUseCases['אחר']) { // הוספת קטגוריית "אחר" בסוף אם קיימת
-             sortedCategories.push('אחר');
-         }
-
+        const sortedCategories = CATEGORIES.filter(cat => groupedUseCases[cat]);
+        if (groupedUseCases['אחר']) sortedCategories.push('אחר');
 
         sortedCategories.forEach((category, index) => {
             const categoryZone = createCategoryZone(category, index);
@@ -165,29 +187,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
      function createCategoryZone(category, index) {
          const categoryZone = document.createElement('div');
-         categoryZone.classList.add('category-zone');
+         categoryZone.className = 'category-zone';
          const categoryColor = categoryColors[index % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
-         categoryZone.style.setProperty('--category-color', categoryColor); // הגדרת משתנה לצבע
+         categoryZone.style.setProperty('--category-color', categoryColor);
 
          const categoryHeader = document.createElement('div');
-         categoryHeader.classList.add('category-header');
+         categoryHeader.className = 'category-header';
 
          const iconSpan = document.createElement('span');
-         iconSpan.classList.add('category-icon');
+         iconSpan.className = 'category-icon';
          iconSpan.setAttribute('aria-hidden', 'true');
          iconSpan.textContent = CATEGORY_ICONS[category] || DEFAULT_ICON;
 
          const categoryTitle = document.createElement('h2');
-         categoryTitle.classList.add('category-title');
+         categoryTitle.className = 'category-title';
          categoryTitle.textContent = category;
 
          categoryHeader.appendChild(iconSpan);
          categoryHeader.appendChild(categoryTitle);
          categoryZone.appendChild(categoryHeader);
 
-         // השהיית אנימציה
          categoryZone.style.animationDelay = `${0.1 + index * 0.05}s`;
-
          return categoryZone;
      }
 
@@ -196,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'inspiration-card';
         card.dataset.id = useCase.id;
         card.dataset.category = useCase.category || 'אחר';
-        card.tabIndex = 0; // לנגישות
+        card.tabIndex = 0;
         card.setAttribute('role', 'button');
         card.setAttribute('aria-label', `שימוש ${useCase.id}: ${useCase.title}`);
 
@@ -206,11 +226,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const cardId = document.createElement('span');
         cardId.className = 'card-id';
         cardId.textContent = useCase.id;
-        // הגדרת צבע רקע ה-ID לפי הקטגוריה
-         const categoryIndex = CATEGORIES.indexOf(useCase.category);
-         const categoryColor = categoryColors[categoryIndex % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
-         cardId.style.backgroundColor = categoryColor;
-
+        const categoryIndex = CATEGORIES.indexOf(useCase.category);
+        const categoryColor = categoryColors[categoryIndex % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
+        cardId.style.backgroundColor = categoryColor;
 
         const cardTitle = document.createElement('h3');
         cardTitle.className = 'card-title';
@@ -227,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.appendChild(cardContent);
         card.appendChild(favoriteIndicator);
 
-        // תיקון קריטי: הוספת Event Listener כאן!
+        // *** תיקון קריטי: הוספת מאזינים כאן ***
         card.addEventListener('click', () => showDetails(useCase.id));
         card.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -242,71 +260,82 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Detail Panel Logic ---
 
     function showDetails(id) {
-        if (isLoading) return; // מניעת פתיחה כפולה
+        if (isLoading || !detailPanel) return;
+        const useCaseId = parseInt(id, 10); // ודא שזה מספר
+        if (isNaN(useCaseId)) {
+             console.error("Invalid ID passed to showDetails:", id);
+             return;
+        }
+
         isLoading = true;
-        detailPanel.classList.add('loading'); // הצג ספינר טעינה
-        panelLoader.style.opacity = '1';
-        panelLoader.style.visibility = 'visible';
+        detailPanel.classList.add('loading'); // מציג ספינר CSS
 
-        // נקה תוכן קודם (חשוב לפני setTimeout)
+        // נקה תוכן ישן וגלול למעלה מיידית
         clearPanelContent();
+        if(detailContent) detailContent.scrollTop = 0;
 
-        const useCase = aiUseCases.find(uc => uc.id === id);
+
+        const useCase = aiUseCases.find(uc => uc.id === useCaseId);
         if (!useCase) {
-            console.error(`לא נמצא שימוש עם ID=${id}`);
-            displayStatusMessage(`שגיאה: לא נמצא שימוש מספר ${id}.`, 'error');
-            hideDetails(); // סגור את הפאנל אם השימוש לא נמצא
+            console.error(`לא נמצא שימוש עם ID=${useCaseId}`);
+            displayStatusMessage(`שגיאה: לא נמצא שימוש מספר ${useCaseId}.`, 'error');
+            hideDetails(); // סגור פאנל
+            detailPanel.classList.remove('loading'); // הסר טוען
             isLoading = false;
-            detailPanel.classList.remove('loading');
-            panelLoader.style.opacity = '0';
-            panelLoader.style.visibility = 'hidden';
             return;
         }
 
-        currentUseCaseId = id;
+        currentUseCaseId = useCaseId; // שמור את ה-ID שנפתח
+
+        // פתח את הפאנל
         detailPanel.setAttribute('aria-hidden', 'false');
         detailPanel.classList.add('visible');
 
-        // שימוש ב-requestAnimationFrame לשיפור ביצועים לפני ה-timeout
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                populatePanelContent(useCase);
-                isLoading = false;
-                detailPanel.classList.remove('loading');
-                 panelLoader.style.opacity = '0';
-                 panelLoader.style.visibility = 'hidden';
-            }, 250); // השהייה קצרה יותר
-        });
+        // מילוי התוכן (יכול להתרחש מיד, הספינר יוסר בסוף)
+        populatePanelContent(useCase);
+
+        // הסר ספינר טעינה (גם אם אין השהיה מדומה)
+        // אפשר להוסיף השהייה קטנה אם רוצים לראות את הספינר לרגע
+        setTimeout(() => {
+            detailPanel.classList.remove('loading');
+            isLoading = false;
+        }, 100); // השהייה קצרה
     }
 
+
     function clearPanelContent() {
+        if (!detailTitle) return; // בדיקה נוספת
         detailTitle.textContent = '';
         detailCategory.textContent = '';
         detailDescription.textContent = '';
         detailExample.textContent = '';
         relatedList.innerHTML = '';
-        relatedContainer.style.display = 'none';
-        // אין צורך לגעת בכפתור המועדפים כאן
+        if (relatedContainer) relatedContainer.style.display = 'none';
+        if (favoriteBtn) favoriteBtn.style.visibility = 'hidden'; // הסתר עד שהתוכן מוכן
     }
 
     function populatePanelContent(useCase) {
+        if (!detailTitle) return; // בדיקה
+
         detailTitle.textContent = `${useCase.id}. ${useCase.title}`;
         const categoryName = useCase.category || 'אחר';
         detailCategory.textContent = categoryName;
 
-        // קביעת צבע לקטגוריה בפאנל
         const categoryIndex = CATEGORIES.indexOf(categoryName);
         const categoryColor = categoryColors[categoryIndex % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
-        detailCategory.style.color = categoryColor;
-        // אפשרות: לשנות את צבע הכותרת או אלמנט אחר בפאנל לפי הצבע
-        // detailTitle.style.color = categoryColor; // לדוגמה
+        const categorySpan = detailCategory.parentNode.querySelector('span'); // מצא את ה-span
+         if (categorySpan) {
+             categorySpan.textContent = categoryName; // עדכן את הטקסט של ה-span
+             categorySpan.style.color = categoryColor;
+             categorySpan.style.borderBottomColor = categoryColor;
+         }
 
 
         detailDescription.textContent = useCase.description || 'אין תיאור זמין.';
         detailExample.textContent = useCase.example || 'אין דוגמה זמינה.';
 
         // שימושים קשורים
-        relatedList.innerHTML = ''; // נקה שוב ליתר ביטחון
+        relatedList.innerHTML = '';
         let foundRelated = false;
         if (useCase.related && Array.isArray(useCase.related) && useCase.related.length > 0) {
             useCase.related.forEach(relatedId => {
@@ -317,11 +346,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const link = document.createElement('a');
                     link.textContent = `${relatedUseCase.id}. ${relatedUseCase.title}`;
                     link.href = "#";
-                    // שימוש בפונקציה אנונימית נפרדת כדי למנוע בעיות scope
-                    const showRelatedDetails = (e) => {
-                         e.preventDefault();
-                         showDetails(relatedId);
-                     };
+                    // שימוש בפונקציה אנונימית נפרדת
+                    const showRelatedDetails = (e) => { e.preventDefault(); showDetails(relatedId); };
                     link.addEventListener('click', showRelatedDetails);
                     link.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showRelatedDetails(e); });
                     li.appendChild(link);
@@ -329,59 +355,61 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-        relatedContainer.style.display = foundRelated ? 'block' : 'none';
+        if(relatedContainer) relatedContainer.style.display = foundRelated ? 'block' : 'none';
 
-        updateFavoriteButtonAppearance(currentUseCaseId); // עדכון מראה כפתור המועדפים
-        detailContent.scrollTop = 0; // גלול לראש הפאנל
+        updateFavoriteButtonAppearance(useCase.id); // עדכון מראה כפתור
+        if (favoriteBtn) favoriteBtn.style.visibility = 'visible'; // הצג את הכפתור
     }
 
+
     function hideDetails() {
+        if (!detailPanel) return;
         detailPanel.classList.remove('visible');
         detailPanel.setAttribute('aria-hidden', 'true');
         currentUseCaseId = null;
-        // ניקוי תוכן יכול להיות אופציונלי כאן, אבל טוב לביצועים
-        // setTimeout(clearPanelContent, 600); // נקה אחרי שהפאנל נסגר
+        // לא מנקה תוכן כאן כדי שהסגירה תהיה חלקה
     }
 
     // --- Favorites Logic ---
 
     function updateFavoriteButtonAppearance(id) {
-        // תיקון קריטי: בדיקה אם הכפתור קיים
         if (!favoriteBtn) return;
-
-        const isFav = favorites.includes(id);
+        const useCaseIdNum = parseInt(id, 10); // ודא שזה מספר להשוואה
+        const isFav = favorites.includes(useCaseIdNum);
         favoriteBtn.innerHTML = isFav ? '⭐ הוסר מהמועדפים' : '⭐ הוסף למועדפים';
         favoriteBtn.classList.toggle('is-favorite', isFav);
-        favoriteBtn.setAttribute('aria-pressed', isFav);
-         favoriteBtn.setAttribute('aria-label', isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים');
-
+        favoriteBtn.setAttribute('aria-pressed', isFav.toString());
+        favoriteBtn.setAttribute('aria-label', isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים');
     }
 
-     // תיקון קריטי: הוספה/הסרה ממועדפים
     function toggleFavorite() {
-        if (currentUseCaseId === null) return;
+        if (currentUseCaseId === null) return; // בדוק אם יש ID נוכחי
         const index = favorites.indexOf(currentUseCaseId);
         const cardElement = allCards.find(card => parseInt(card.dataset.id) === currentUseCaseId);
 
-        if (index > -1) { // קיים, אז הסר
+        if (index > -1) { // קיים, הסר
             favorites.splice(index, 1);
             if(cardElement) cardElement.classList.remove('is-favorite');
-        } else { // לא קיים, אז הוסף
+        } else { // לא קיים, הוסף
             favorites.push(currentUseCaseId);
              if(cardElement) cardElement.classList.add('is-favorite');
         }
-        saveFavorites(); // שמור את המערך המעודכן
-        updateFavoriteButtonAppearance(currentUseCaseId); // עדכן את הכפתור בפאנל
+        saveFavorites();
+        updateFavoriteButtonAppearance(currentUseCaseId); // עדכן כפתור בפאנל
 
-        // עדכן את התצוגה אם המשתמש במצב 'הצג מועדפים'
-        if (showingFavorites) {
+        // עדכן את התצוגה רק אם המשתמש במצב 'הצג מועדפים' והוסר פריט
+        if (showingFavorites && index > -1) {
             updateCardsVisualState();
         }
+         // עדכון ויזואלי קל לכפתור הראשי אם רשימת המועדפים משתנה
+        updateFavoritesButtonVisualState();
+
     }
 
-     // --- Filtering and Visual State ---
+    // --- Filtering and Visual State ---
 
     function updateCardsVisualState() {
+        if (!studioDashboard) return; // ודא שהדשבורד קיים
         const searchTerm = searchInput.value.toLowerCase().trim();
         let hasVisibleCardsOverall = false;
 
@@ -391,49 +419,49 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!useCase) return;
 
             const isFavorite = favorites.includes(id);
-            card.classList.toggle('is-favorite', isFavorite); // עדכון ויזואלי לכרטיסייה
+            card.classList.toggle('is-favorite', isFavorite);
 
-            // בדיקת התאמה לחיפוש (כולל חיפוש בקטגוריה)
-             const categoryText = useCase.category ? useCase.category.toLowerCase() : '';
-             const isMatch = searchTerm === '' ||
-                            useCase.title.toLowerCase().includes(searchTerm) ||
-                            (useCase.description && useCase.description.toLowerCase().includes(searchTerm)) ||
-                            (useCase.example && useCase.example.toLowerCase().includes(searchTerm)) ||
+            const categoryText = (useCase.category || '').toLowerCase();
+            const titleText = (useCase.title || '').toLowerCase();
+            const descriptionText = (useCase.description || '').toLowerCase();
+            const exampleText = (useCase.example || '').toLowerCase();
+
+            const isMatch = searchTerm === '' ||
+                            titleText.includes(searchTerm) ||
+                            descriptionText.includes(searchTerm) ||
+                            exampleText.includes(searchTerm) ||
                             categoryText.includes(searchTerm) ||
                             useCase.id.toString() === searchTerm;
 
             const shouldBeVisible = isMatch && (!showingFavorites || isFavorite);
 
-            card.style.display = shouldBeVisible ? '' : 'none'; // הצג/הסתר
-            card.classList.toggle('highlight', shouldBeVisible && searchTerm !== ''); // הדגשת חיפוש
+            card.style.display = shouldBeVisible ? '' : 'flex'; // שימוש ב-flex במקום ברירת מחדל
+            card.classList.toggle('highlight', shouldBeVisible && searchTerm !== '');
 
-            if (shouldBeVisible) {
-                hasVisibleCardsOverall = true;
-            }
+            if (shouldBeVisible) hasVisibleCardsOverall = true;
         });
 
-        // הצג/הסתר אזורי קטגוריה ריקים
+        // הצג/הסתר אזורי קטגוריה
         document.querySelectorAll('.category-zone').forEach(zone => {
             const visibleCardsInSection = zone.querySelectorAll('.inspiration-card:not([style*="display: none"])');
-            zone.style.display = visibleCardsInSection.length > 0 ? '' : 'none';
+            zone.style.display = visibleCardsInSection.length > 0 ? 'flex' : 'none'; // שימוש ב-flex
         });
 
-        // הצג/הסתר הודעת "אין תוצאות"
+        // הודעת "אין תוצאות"
         const existingNoResultsMsg = studioDashboard.querySelector('.no-results-message');
-        if (!hasVisibleCardsOverall) {
+        if (!hasVisibleCardsOverall && allCards.length > 0) { // בדוק שיש כרטיסיות בכלל
              if (!existingNoResultsMsg) {
                  const msgElement = document.createElement('p');
-                 msgElement.className = 'no-results-message loading-message'; // Reuse style
-                 msgElement.textContent = showingFavorites ? "אין מועדפים התואמים את החיפוש." : "לא נמצאו שימושים התואמים את החיפוש.";
+                 msgElement.className = 'no-results-message loading-message';
                  studioDashboard.appendChild(msgElement);
-             } else {
-                 existingNoResultsMsg.textContent = showingFavorites ? "אין מועדפים התואמים את החיפוש." : "לא נמצאו שימושים התואמים את החיפוש.";
-                 existingNoResultsMsg.style.display = 'block';
              }
+             studioDashboard.querySelector('.no-results-message').textContent = showingFavorites ? "אין מועדפים התואמים את החיפוש." : "לא נמצאו שימושים התואמים את החיפוש.";
+             studioDashboard.querySelector('.no-results-message').style.display = 'block';
          } else {
              if (existingNoResultsMsg) existingNoResultsMsg.remove();
          }
     }
+
 
     function handleSearch() {
         updateCardsVisualState();
@@ -441,52 +469,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleFavoritesView() {
         showingFavorites = !showingFavorites;
-        favoritesToggleBtn.classList.toggle('active', showingFavorites);
-        favoritesToggleBtn.setAttribute('aria-pressed', showingFavorites); // עדכון ARIA
-        updateCardsVisualState(); // עדכון המראה
-
-        if(showingFavorites) {
-            favoritesToggleBtn.title = "הצג את כל השימושים";
-            favoritesToggleBtn.setAttribute('aria-label', 'הצג את כל השימושים');
-         } else {
-            favoritesToggleBtn.title = "הצג מועדפים בלבד";
-            favoritesToggleBtn.setAttribute('aria-label', 'הצג מועדפים בלבד');
-         }
+        updateFavoritesButtonVisualState(); // עדכון הכפתור הראשי
+        updateCardsVisualState(); // עדכון התצוגה
     }
 
-    // עדכון ויזואלי לכפתור המועדפים הראשי
+    // עדכון ויזואלי ומצב ARIA לכפתור המועדפים הראשי
     function updateFavoritesButtonVisualState() {
+        if (!favoritesToggleBtn) return;
         favoritesToggleBtn.classList.toggle('active', showingFavorites);
-        favoritesToggleBtn.setAttribute('aria-pressed', showingFavorites);
-         if(showingFavorites) {
-            favoritesToggleBtn.title = "הצג את כל השימושים";
-            favoritesToggleBtn.setAttribute('aria-label', 'הצג את כל השימושים');
-         } else {
-            favoritesToggleBtn.title = "הצג מועדפים בלבד";
-            favoritesToggleBtn.setAttribute('aria-label', 'הצג מועדפים בלבד');
-         }
+        favoritesToggleBtn.setAttribute('aria-pressed', showingFavorites.toString());
+        const newTitle = showingFavorites ? "הצג את כל השימושים" : "הצג מועדפים בלבד";
+        favoritesToggleBtn.title = newTitle;
+        favoritesToggleBtn.setAttribute('aria-label', newTitle);
     }
-
 
     // --- Setup Event Listeners ---
     function setupEventListeners() {
+        // בדיקה שכל האלמנטים קיימים לפני הוספת מאזינים
         if (closePanelBtn) closePanelBtn.addEventListener('click', hideDetails);
-        if (favoriteBtn) favoriteBtn.addEventListener('click', toggleFavorite); // תיקון: לוודא שהכפתור קיים
+        if (favoriteBtn) favoriteBtn.addEventListener('click', toggleFavorite);
         if (searchInput) searchInput.addEventListener('input', handleSearch);
-        if (favoritesToggleBtn) favoritesToggleBtn.addEventListener('click', toggleFavoritesView); // תיקון: לוודא שהכפתור קיים
+        if (favoritesToggleBtn) favoritesToggleBtn.addEventListener('click', toggleFavoritesView);
 
-        // סגירת הפאנל בלחיצה מחוצה לו
-        appContainer.addEventListener('click', (event) => {
-            if (!detailPanel.classList.contains('visible')) return;
-            // בדוק אם הלחיצה *לא* היתה בתוך הפאנל עצמו
-            if (!detailPanel.contains(event.target)) {
+        // סגירת הפאנל בלחיצה מחוץ לו
+        document.addEventListener('click', (event) => {
+            if (!detailPanel || !detailPanel.classList.contains('visible')) return;
+            // ודא שהלחיצה לא היתה על הפאנל, וגם לא על כרטיסיה שפותחת אותו
+            if (!detailPanel.contains(event.target) && !event.target.closest('.inspiration-card')) {
                  hideDetails();
             }
         });
 
         // סגירת הפאנל במקש Escape
          document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && detailPanel.classList.contains('visible')) {
+            if (e.key === 'Escape' && detailPanel && detailPanel.classList.contains('visible')) {
                 hideDetails();
             }
          });
