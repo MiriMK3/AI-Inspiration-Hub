@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detailCategorySpan: document.getElementById('detail-category'),
         detailDescription: document.getElementById('detail-description'),
         detailExample: document.getElementById('detail-example'),
+        // detailExampleStrong is no longer needed as we removed the strong tag
         relatedList: document.getElementById('related-list'),
         relatedContainer: document.getElementById('related-container'),
         favoriteBtn: document.getElementById('favorite-btn'),
@@ -20,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         favoritesToggleBtn: document.getElementById('favorites-toggle-btn'),
         statusMessageContainer: document.getElementById('status-message-container'),
         initialLoader: document.getElementById('initial-loader'),
-        mainTitle: document.getElementById('main-title') // הוספת הכותרת הראשית
+        resetViewBtn: document.getElementById('reset-view-btn') // Renamed from mainTitle
     };
 
     // --- State ---
@@ -31,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLoading = false;
 
     // --- Constants & Initial Setup ---
-    const LS_FAVORITES_KEY = 'aiLndFavorites_v4'; // נשתמש במפתח של v4
+    const LS_FAVORITES_KEY = 'aiLndFavorites_v5'; // Bump version if schema changes significantly
     let CATEGORIES = [];
     let CATEGORY_ICONS = {};
     let categoryColors = [];
@@ -50,25 +51,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         renderStudioDashboard();
-        setupEventListeners();
+        setupEventListeners(); // Setup listeners after rendering
         updateFavoritesButtonVisualState();
 
         if (elements.initialLoader) elements.initialLoader.style.display = 'none';
     }
 
     // --- Helper Functions ---
-    function validateDependencies() {
+    function validateDependencies() { /* (Same as v5) */
         for (const key in elements) {
-            if (!elements[key] && key !== 'detailExampleStrong') { // Allow optional detailExampleStrong
+            if (!elements[key]) {
                 console.error(`Initialization Error: Element '${key}' not found.`);
                 document.body.innerHTML = `<p style="color:red; padding: 20px; text-align:center;">שגיאה קריטית: רכיב ${key} לא נמצא.</p>`;
                 return false;
             }
         }
         return true;
-    }
-
-    function displayStatusMessage(message, type = 'info', duration = 3500) { /* (Same as v4) */
+     }
+    function displayStatusMessage(message, type = 'info', duration = 3500) { /* (Same as v5) */
         if (!elements.statusMessageContainer) return;
         const messageDiv = document.createElement('div');
         messageDiv.textContent = message;
@@ -86,23 +86,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }, duration);
         }
      }
-    function handleLoadError(message) { /* (Same as v4) */
+    function handleLoadError(message) { /* (Same as v5) */
         console.error(message);
         if (elements.initialLoader) elements.initialLoader.style.display = 'none';
         displayStatusMessage(message, 'error', 0);
      }
-    function loadFavorites() { /* (Same as v4) */
+    function loadFavorites() { /* (Same as v5) */
         try {
             const storedFavorites = localStorage.getItem(LS_FAVORITES_KEY);
             favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
             if (!Array.isArray(favorites)) favorites = [];
         } catch (e) { console.error("Error reading favorites:", e); favorites = []; }
      }
-    function saveFavorites() { /* (Same as v4) */
+    function saveFavorites() { /* (Same as v5) */
         try { localStorage.setItem(LS_FAVORITES_KEY, JSON.stringify(favorites)); }
         catch (e) { console.error("Error saving favorites:", e); displayStatusMessage('שגיאה בשמירת המועדפים.', 'error');}
      }
-     function setupConstants() { /* (Same as v4) */
+    function setupConstants() { /* (Same as v5) */
          CATEGORIES = [...new Set(aiUseCases.map(uc => uc.category).filter(Boolean))];
          CATEGORY_ICONS = { /* Icons dictionary */
             "יצירת תוכן לימודי": "📝", "הערכה ומדידה": "📊", "התאמה אישית (פרסונליזציה)": "⚙️",
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
      }
 
     // --- Rendering Functions ---
-    function renderStudioDashboard() { /* (Same as v4) */
+    function renderStudioDashboard() { /* (Same as v5) */
         if (!elements.studioDashboard) return;
         elements.studioDashboard.innerHTML = '';
         allCards = [];
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         updateCardsVisualState();
      }
-     function createCategoryZone(category, index) { /* (Same as v4) */
+     function createCategoryZone(category, index) { /* (Same as v5) */
          const categoryZone = document.createElement('div');
          categoryZone.className = 'category-zone';
          const categoryColor = categoryColors[index % categoryColors.length] || DEFAULT_CATEGORY_COLOR;
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
          categoryZone.style.animationDelay = `${0.1 + index * 0.05}s`;
          return categoryZone;
       }
-     function createInspirationCard(useCase) { /* (Same as v4) */
+     function createInspirationCard(useCase) { /* (Same as v5) */
         const card = document.createElement('div');
         card.className = 'inspiration-card';
         card.dataset.id = useCase.id;
@@ -209,11 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
     // --- Detail Panel Logic ---
-     function handleCardClick(id) { /* (Same as v4) */
+     function handleCardClick(id) { /* (Same as v5) */
         if (isLoading || (elements.detailPanel.classList.contains('visible') && currentUseCaseId === id)) return;
         showDetails(id);
       }
-     function showDetails(id) { /* (Same as v4) */
+     function showDetails(id) { /* (Same as v5) */
         if (isLoading || !elements.detailPanel) return;
         const useCaseIdNum = parseInt(id, 10);
         if (isNaN(useCaseIdNum)) return;
@@ -233,24 +233,21 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.detailPanel.classList.add('visible');
         setTimeout(() => { elements.detailPanel.classList.remove('loading'); isLoading = false; }, 50);
      }
-     function clearPanelContent() { /* (Same as v4, but no strong tag handling) */
+     function clearPanelContent() { /* (Same as v5) */
         if (!elements.detailTitle) return;
         elements.detailTitle.textContent = '';
         if (elements.detailCategorySpan) elements.detailCategorySpan.textContent = '';
         elements.detailDescription.textContent = '';
-        elements.detailExample.textContent = ''; // Clear example text
+        elements.detailExample.textContent = '';
         elements.relatedList.innerHTML = '';
         if (elements.relatedContainer) elements.relatedContainer.style.display = 'none';
         if (elements.favoriteBtn) elements.favoriteBtn.style.visibility = 'hidden';
         if (elements.detailCategorySpan) { elements.detailCategorySpan.style.color = ''; elements.detailCategorySpan.style.borderBottomColor = ''; }
      }
-
-    function populatePanelContent(useCase) { /* (Updated for example display) */
+     function populatePanelContent(useCase) { /* (Same as v5) */
         if (!elements.detailTitle || !elements.detailExample) return;
-
         elements.detailTitle.textContent = `${useCase.id}. ${useCase.title || ''}`;
         const categoryName = useCase.category || 'אחר';
-
         if(elements.detailCategorySpan) {
             elements.detailCategorySpan.textContent = categoryName;
             const categoryIndex = CATEGORIES.indexOf(categoryName);
@@ -258,15 +255,9 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.detailCategorySpan.style.color = categoryColor;
             elements.detailCategorySpan.style.borderBottomColor = categoryColor;
         }
-
         elements.detailDescription.textContent = useCase.description || 'אין תיאור זמין.';
-
-        // *** תיקון כפילות "דוגמה" - הצג רק טקסט הדוגמה ***
         elements.detailExample.textContent = useCase.example || '';
         elements.detailExample.style.display = useCase.example ? 'block' : 'none';
-
-
-        // Related items (same as v4)
         if (elements.relatedList && elements.relatedContainer) {
             elements.relatedList.innerHTML = '';
             let foundRelated = false;
@@ -289,12 +280,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             elements.relatedContainer.style.display = foundRelated ? 'block' : 'none';
         }
-
         updateFavoriteButtonAppearance(useCase.id);
         if(elements.favoriteBtn) elements.favoriteBtn.style.visibility = 'visible';
-    }
-
-    function hideDetails() { /* (Same as v4) */
+     }
+    function hideDetails() { /* (Same as v5) */
         if (!elements.detailPanel) return;
         elements.detailPanel.classList.remove('visible');
         elements.detailPanel.setAttribute('aria-hidden', 'true');
@@ -302,17 +291,17 @@ document.addEventListener('DOMContentLoaded', () => {
      }
 
     // --- Favorites Logic ---
-    function updateFavoriteButtonAppearance(id) { /* (Updated text) */
+    function updateFavoriteButtonAppearance(id) { /* (Same as v5) */
         if (!elements.favoriteBtn) return;
         const useCaseIdNum = parseInt(id, 10);
         const isFav = favorites.includes(useCaseIdNum);
-        elements.favoriteBtn.innerHTML = isFav ? '⭐ הסר מהמועדפים' : '⭐ הוסף למועדפים'; // Corrected text
+        elements.favoriteBtn.innerHTML = isFav ? '⭐ הסר מהמועדפים' : '⭐ הוסף למועדפים';
         elements.favoriteBtn.classList.toggle('is-favorite', isFav);
         elements.favoriteBtn.setAttribute('aria-pressed', isFav.toString());
         elements.favoriteBtn.setAttribute('aria-label', isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים');
     }
 
-    function toggleFavorite() { /* (Same as v4 - logic fixed there) */
+    function toggleFavorite() { /* (Same as v5) */
         if (currentUseCaseId === null || !elements.favoriteBtn) return;
         const index = favorites.indexOf(currentUseCaseId);
         const cardElement = allCards.find(card => card && parseInt(card.dataset.id) === currentUseCaseId);
@@ -328,12 +317,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveFavorites();
         updateFavoriteButtonAppearance(currentUseCaseId);
-        updateCardsVisualState(); // Update main view to reflect favorite change immediately
+        updateCardsVisualState(); // עדכון מלא למקרה שהיינו במצב מועדפים
         updateFavoritesButtonVisualState();
     }
 
     // --- Filtering and Visual State ---
-    function updateCardsVisualState() { /* (Same as v4) */
+    function updateCardsVisualState() { /* (Same as v5) */
         if (!elements.studioDashboard || !Array.isArray(allCards)) return;
         const searchTerm = elements.searchInput ? elements.searchInput.value.toLowerCase().trim() : "";
         let hasVisibleCardsOverall = false;
@@ -343,33 +332,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = parseInt(card.dataset.id);
             const useCase = aiUseCases.find(uc => uc.id === id);
             if (!useCase) { card.classList.add('card-hidden'); return; };
-
             const isFavorite = favorites.includes(id);
             card.classList.toggle('is-favorite', isFavorite);
-
             const categoryText = (useCase.category || '').toLowerCase();
             const titleText = (useCase.title || '').toLowerCase();
             const descriptionText = (useCase.description || '').toLowerCase();
             const exampleText = (useCase.example || '').toLowerCase();
-
             const isMatch = searchTerm === '' ||
                             titleText.includes(searchTerm) || descriptionText.includes(searchTerm) ||
                             exampleText.includes(searchTerm) || categoryText.includes(searchTerm) ||
                             useCase.id.toString() === searchTerm;
-
             const shouldBeVisible = isMatch && (!showingFavorites || isFavorite);
-
             card.classList.toggle('card-hidden', !shouldBeVisible);
             card.classList.toggle('highlight', shouldBeVisible && searchTerm !== '');
-
             if (shouldBeVisible) hasVisibleCardsOverall = true;
         });
-
         document.querySelectorAll('.category-zone').forEach(zone => {
              const visibleCardsInSection = zone.querySelectorAll('.inspiration-card:not(.card-hidden)');
              zone.style.display = visibleCardsInSection.length > 0 ? 'flex' : 'none';
         });
-
         const existingNoResultsMsg = elements.studioDashboard.querySelector('.no-results-message');
         if (!hasVisibleCardsOverall && allCards.length > 0) {
              if (!existingNoResultsMsg) {
@@ -390,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleSearch() { updateCardsVisualState(); }
     function toggleFavoritesView() { showingFavorites = !showingFavorites; updateFavoritesButtonVisualState(); updateCardsVisualState(); }
-    function updateFavoritesButtonVisualState() { /* (Same as v4) */
+    function updateFavoritesButtonVisualState() { /* (Same as v5) */
         if (!elements.favoritesToggleBtn) return;
         elements.favoritesToggleBtn.classList.toggle('active', showingFavorites);
         elements.favoritesToggleBtn.setAttribute('aria-pressed', showingFavorites.toString());
@@ -399,21 +380,17 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.favoritesToggleBtn.setAttribute('aria-label', newTitle);
      }
 
-     // *** פונקציה חדשה לאיפוס התצוגה ***
-     function resetView() {
-        if (elements.searchInput) elements.searchInput.value = ''; // איפוס שדה חיפוש
-        if (showingFavorites) { // אם היינו במצב מועדפים, בטל אותו
+     function resetView() { /* (Same as v5) */
+        if (elements.searchInput) elements.searchInput.value = '';
+        if (showingFavorites) {
             showingFavorites = false;
             updateFavoritesButtonVisualState();
         }
-        updateCardsVisualState(); // עדכן את התצוגה להציג הכל
-        if (elements.detailPanel.classList.contains('visible')) { // סגור פאנל אם פתוח
-            hideDetails();
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // גלול לראש הדף
-        displayStatusMessage("התצוגה אופסה.", "info");
+        updateCardsVisualState();
+        if (elements.detailPanel.classList.contains('visible')) hideDetails();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // displayStatusMessage("התצוגה אופסה.", "info"); // אפשר להסיר את ההודעה אם היא מציקה
      }
-
 
     // --- Setup Event Listeners ---
     function setupEventListeners() {
@@ -422,27 +399,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements.searchInput) elements.searchInput.addEventListener('input', handleSearch);
         if (elements.favoritesToggleBtn) elements.favoritesToggleBtn.addEventListener('click', toggleFavoritesView);
 
-        // *** הוספת מאזין לכותרת הראשית לאיפוס ***
-        if (elements.mainTitle) {
-            elements.mainTitle.addEventListener('click', resetView);
-            elements.mainTitle.addEventListener('keydown', (e) => {
-                 if (e.key === 'Enter' || e.key === ' ') {
-                     e.preventDefault();
-                     resetView();
-                 }
-            });
+        // *** תיקון: מאזין לכפתור האיפוס ***
+        if (elements.resetViewBtn) {
+            elements.resetViewBtn.addEventListener('click', resetView);
+            // אין צורך ב-keydown נפרד, כפתור מקבל מיקוד ואירוע קליק ממילא
         }
 
-        // Close panel on outside click (same as v4)
+        // Close panel on outside click (same as v5)
         if (elements.appContainer && elements.detailPanel) {
             document.body.addEventListener('click', (event) => {
                 if (!elements.detailPanel.classList.contains('visible')) return;
-                if (!elements.detailPanel.contains(event.target) && !event.target.closest('.inspiration-card') && event.target !== elements.favoritesToggleBtn) {
+                if (!elements.detailPanel.contains(event.target) && !event.target.closest('.inspiration-card') && event.target !== elements.favoritesToggleBtn && !event.target.closest('#reset-view-btn')) {
                      hideDetails();
                 }
             }, true);
         }
-        // Close panel with Escape key (same as v4)
+        // Close panel with Escape key (same as v5)
          document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && elements.detailPanel && elements.detailPanel.classList.contains('visible')) {
                 hideDetails();
