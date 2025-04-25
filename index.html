@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI L&D Studio | סטודיו ההשראה ל-AI בלמידה</title> {/* כותרת ברורה יותר */}
+    <title>AI L&D Studio | סטודיו ההשראה ל-AI בלמידה v2</title> {/* עדכון כותרת לגירסה */}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -11,6 +11,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💡</text></svg>">
 </head>
 <body>
+    {/* מיכל ראשי לכל האפליקציה */}
     <div id="app-container">
         <header>
             <div class="header-content">
@@ -22,11 +23,17 @@
             </div>
         </header>
 
-        {/* הודעת מצב - תוצג ע"י JS */}
+        {/* הודעת סטטוס - תוצג ע"י JS */}
         <div id="status-message-container" aria-live="polite"></div>
 
+        {/* אזור התוכן המרכזי */}
         <main id="studio-dashboard" aria-label="דשבורד שימושי AI">
-            {/* אזורי הקטגוריות יתווספו כאן על ידי JavaScript */}
+            {/* הודעת טעינה ראשונית */}
+            <div id="initial-loader" class="loading-message">
+                <div class="spinner"></div>
+                <p>טוען את הסטודיו...</p>
+            </div>
+            {/* אזורי הקטגוריות יתווספו כאן */}
         </main>
 
         <footer>
@@ -34,17 +41,16 @@
         </footer>
     </div>
 
-    {/* פאנל הפרטים נשאר מחוץ ל-app-container כדי לאפשר מיקום fixed */}
+    {/* פאנל הפרטים - מחוץ למיכל הראשי כדי לאפשר fixed */}
     <aside id="detail-panel" aria-hidden="true" aria-labelledby="detail-title">
         <div class="panel-content-wrapper">
             <button id="close-panel-btn" title="סגור" aria-label="סגור פאנל פרטים">×</button>
-            {/* אנימציית טעינה */}
+            {/* אנימציית טעינה לפאנל */}
             <div id="panel-loader" class="panel-loader" aria-hidden="true">
                 <div class="spinner"></div>
             </div>
             {/* תוכן הפאנל */}
             <div id="detail-content" aria-live="polite">
-                 {/* התוכן ימולא על ידי JavaScript */}
                  <h2 id="detail-title"></h2>
                  <p class="category"><strong>קטגוריה:</strong> <span id="detail-category"></span></p>
                  <p id="detail-description"></p>
@@ -58,7 +64,10 @@
         </div>
     </aside>
 
+    {/* חשוב: טעינת קבצי ה-JS בסוף ה-body */}
+    {/* קובץ הנתונים נשאר אותו דבר */}
     <script src="data.js"></script>
-    <script src="script.js"></script>
+    {/* defer גורם לסקריפט לרוץ רק אחרי שה-HTML כולו נטען */}
+    <script src="script.js" defer></script>
 </body>
 </html>
