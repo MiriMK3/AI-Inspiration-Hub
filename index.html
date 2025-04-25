@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ערפילית ה-AI בלמידה</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="background-stars"></div> {/* רקע כוכבים זז */}
+
+    <header>
+        <h1>ערפילית ה-AI בלמידה</h1>
+        <div class="controls">
+            <input type="search" id="search-input" placeholder="חיפוש שימוש...">
+            <button id="favorites-toggle-btn" title="הצג/הסתר מועדפים">⭐</button>
+        </div>
+    </header>
+
+    <main id="nebula-container">
+        <!-- הכוכבים (שימושי AI) יתווספו כאן על ידי JavaScript -->
+    </main>
+
+    <aside id="detail-panel">
+        <button id="close-panel-btn" title="סגור">×</button>
+        <div id="detail-content">
+            <h2 id="detail-title"></h2>
+            <p class="category"><strong >קטגוריה:</strong> <span id="detail-category"></span></p>
+            <p id="detail-description"></p>
+            <p class="example"><strong>דוגמה:</strong> <span id="detail-example"></span></p>
+            <div id="related-container">
+                <p><strong>שימושים קשורים:</strong></p>
+                <ul id="related-list"></ul>
+            </div>
+             <button id="favorite-btn">⭐ הוסף למועדפים</button>
+        </div>
+    </aside>
+
+    <!-- קובץ נתונים וסקריפט ראשי -->
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
