@@ -1,76 +1,92 @@
 /* --- הגדרות בסיס ומשתנים --- */
 :root {
-    --bg-color: #f4f7f9; /* רקע בהיר ונקי */
-    --text-color: #333;
-    --header-bg: #ffffff;
-    --header-shadow: rgba(0, 0, 0, 0.1);
-    --card-bg: #ffffff;
-    --card-shadow: rgba(0, 0, 0, 0.08);
-    --card-hover-shadow: rgba(0, 0, 0, 0.15);
+    --font-primary: 'Assistant', sans-serif;
+    --bg-gradient-start: #eef2f5; /* תכלת-אפרפר בהיר מאוד */
+    --bg-gradient-end: #ffffff;
+    --text-color-primary: #2c3e50; /* כחול-אפור כהה */
+    --text-color-secondary: #5a6a7a;
+    --primary-accent: #3498db; /* כחול בהיר יותר */
+    --secondary-accent: #9b59b6; /* סגול */
+    --highlight-yellow: #f1c40f; /* צהוב מועדפים */
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    --card-hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     --panel-bg: #ffffff;
-    --panel-shadow: rgba(0, 0, 0, 0.2);
-    --primary-color: #4a90e2; /* כחול נעים */
-    --secondary-color: #50e3c2; /* טורקיז להדגשות */
-    --highlight-color: #f8e71c; /* צהוב למועדפים */
-    --border-color: #e1e8ed;
-    --footer-bg: #e1e8ed;
-    --footer-text: #667580;
+    --panel-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+    --border-light: #e0e6ed;
+    --header-height: 75px;
+    --transition-speed: 0.3s;
+    --card-border-radius: 12px;
+    --panel-border-radius: 16px 0 0 16px; /* פינות מעוגלות לפאנל */
 
-    /* צבעי קטגוריות (גוונים בהירים יותר) */
-    --cat-color-1: #ffeaeb; /* אדמדם בהיר */
-    --cat-color-2: #fff3e0; /* כתמתם בהיר */
-    --cat-color-3: #fffde7; /* צהבהב בהיר */
-    --cat-color-4: #e8f5e9; /* ירקרק בהיר */
-    --cat-color-5: #e0f7fa; /* תכלת בהיר */
-    --cat-color-6: #e3f2fd; /* כחול בהיר */
-    --cat-color-7: #ede7f6; /* סגלגל בהיר */
-    --cat-color-8: #fce4ec; /* ורדרד בהיר */
-    /* ניתן להוסיף עוד צבעים */
+    /* צבעי קטגוריות (ניתן להוסיף עוד) */
+    --cat-colors:
+        #eb9f9f, /* 1 */
+        #f6c28b, /* 2 */
+        #f8df8d, /* 3 */
+        #a9dfbf, /* 4 */
+        #a2d5f5, /* 5 */
+        #a0bded, /* 6 */
+        #cbaacb, /* 7 */
+        #f5b7b1; /* 8 */
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    font-family: 'Assistant', sans-serif; /* גופן עברי נקי וקריא */
-    margin: 0;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    line-height: 1.6;
+    font-family: var(--font-primary);
+    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+    color: var(--text-color-primary);
+    line-height: 1.65;
+    min-height: 100vh;
+    display: flex; /* מאפשר לפאנל להיות fixed ללא הפרעה */
+}
+
+#app-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    flex-grow: 1; /* תופס את כל הרוחב הזמין */
+    width: 100%;
 }
+
 
 /* --- Header --- */
 header {
-    background-color: var(--header-bg);
-    box-shadow: 0 2px 4px var(--header-shadow);
-    position: sticky; /* נשאר למעלה בגלילה */
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px); /* אפקט זכוכית */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    position: sticky;
     top: 0;
     z-index: 100;
     width: 100%;
-    padding: 0 20px; /* ריווח פנימי לצדדים */
-    box-sizing: border-box;
+    height: var(--header-height);
 }
 
 .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1400px; /* רוחב מקסימלי לתוכן */
-    margin: 0 auto; /* ממורכז */
-    height: 70px; /* גובה קבוע */
+    max-width: 1600px; /* רוחב מקסימלי גדול יותר */
+    margin: 0 auto;
+    padding: 0 30px; /* ריווח צדדי גדול יותר */
+    height: 100%;
 }
 
 header h1 {
-    margin: 0;
-    font-size: 1.8em; /* גודל כותרת */
-    font-weight: 700; /* הדגשה */
-    color: var(--primary-color);
+    font-size: 1.9em;
+    font-weight: 700;
+    color: var(--text-color-primary);
     display: flex;
     align-items: center;
-    gap: 10px; /* רווח בין האייקון לטקסט */
+    gap: 12px;
 }
 .logo-icon {
-    font-size: 1.5em; /* הגדלת אייקון הנורה */
+    font-size: 1.6em;
+    color: var(--primary-accent);
 }
 
 .controls {
@@ -80,414 +96,501 @@ header h1 {
 }
 
 #search-input {
-    padding: 10px 15px;
-    border-radius: 20px;
-    border: 1px solid var(--border-color);
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: 1px solid var(--border-light);
     background-color: #fff;
-    color: var(--text-color);
-    min-width: 250px;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    font-family: 'Assistant', sans-serif;
+    color: var(--text-color-secondary);
+    min-width: 300px;
+    transition: all var(--transition-speed) ease;
+    font-family: var(--font-primary);
+    font-size: 1em;
 }
 #search-input:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    color: var(--text-color-primary);
 }
 
-header button {
+.controls button {
     background-color: transparent;
-    color: #555;
-    border: none;
+    color: var(--text-color-secondary);
+    border: 1px solid var(--border-light);
     border-radius: 50%;
     cursor: pointer;
-    font-size: 1.6em; /* גודל האמוג'י */
-    width: 45px;
-    height: 45px;
+    font-size: 1.6em;
+    width: 48px;
+    height: 48px;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: background-color 0.3s, transform 0.2s;
+    transition: all var(--transition-speed) ease;
 }
-header button:hover {
-    background-color: rgba(0,0,0,0.05);
-    transform: scale(1.1);
+.controls button:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-color: #ccc;
+    transform: translateY(-2px);
+    color: var(--text-color-primary);
 }
-header button.active { /* סגנון לכפתור מועדפים פעיל */
-    background-color: var(--highlight-color);
-    color: #333;
-}
-
-
-/* --- אזור הסטודיו הראשי --- */
-#studio-layout {
-    padding: 30px 20px; /* ריווח פנימי */
-    max-width: 1400px; /* רוחב מקסימלי */
-    margin: 0 auto; /* ממורכז */
-    flex-grow: 1; /* תופס את שאר הגובה */
-    box-sizing: border-box;
+.controls button.active {
+    background-color: var(--highlight-yellow);
+    color: var(--text-color-primary);
+    border-color: transparent;
+    transform: scale(1.05);
 }
 
-.loading {
+/* --- Dashboard Layout --- */
+#studio-dashboard {
+    padding: 40px 30px;
+    max-width: 1600px;
+    margin: 0 auto;
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Responsive grid */
+    gap: 30px; /* רווח בין אזורי הקטגוריות */
+}
+
+.loading-message {
+    grid-column: 1 / -1; /* תופס את כל הרוחב */
     text-align: center;
-    font-size: 1.2em;
-    color: #888;
-    padding: 50px;
+    font-size: 1.3em;
+    color: var(--text-color-secondary);
+    padding: 60px 0;
+    font-weight: 300;
 }
 
-/* --- קטגוריה --- */
-.category-section {
-    margin-bottom: 40px;
-    background-color: var(--card-bg); /* רקע לבן לאזור הקטגוריה */
-    border-radius: 8px;
-    box-shadow: 0 3px 10px var(--card-shadow);
-    padding: 20px;
-    transition: opacity 0.5s ease-in-out; /* אנימצית כניסה */
-    border-top: 4px solid; /* קו צבעוני עליון, הצבע יקבע ב-JS */
+.category-zone {
+    background-color: var(--card-bg);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 25px;
+    border-top: 5px solid; /* צבע יקבע ב-JS */
+    display: flex;
+    flex-direction: column;
+    opacity: 0; /* יופיע באנימציה */
+    transform: translateY(20px); /* יופיע באנימציה */
+    animation: fadeInUp 0.5s ease-out forwards;
+    transition: box-shadow var(--transition-speed) ease;
+}
+.category-zone:hover {
+     box-shadow: var(--card-hover-shadow);
 }
 
-.category-section h2 {
-    font-size: 1.6em;
-    font-weight: 600;
-    color: var(--text-color);
-    margin-top: 0;
+/* אנימצית כניסה לקטגוריות */
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* השהיית האנימציה לקטגוריות הבאות */
+/* ניתן ליצור לולאה ב-JS במקום CSS אם יש הרבה קטגוריות */
+.category-zone:nth-child(1) { animation-delay: 0.1s; }
+.category-zone:nth-child(2) { animation-delay: 0.15s; }
+.category-zone:nth-child(3) { animation-delay: 0.2s; }
+.category-zone:nth-child(4) { animation-delay: 0.25s; }
+.category-zone:nth-child(5) { animation-delay: 0.3s; }
+/* ... המשך לפי הצורך ... */
+
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.category-icon {
+    font-size: 1.8em;
+    line-height: 1; /* מניעת גובה שורה מיותר */
+}
+
+.category-title {
+    font-size: 1.4em;
+    font-weight: 600;
+    color: inherit; /* יורש את צבע הקטגוריה מה-JS */
+    margin: 0;
+    flex-grow: 1;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    flex-grow: 1; /* תופס מקום פנוי בתוך האזור */
+}
+
+/* --- Inspiration Card --- */
+.inspiration-card {
+    background-color: #fff;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    display: flex;
+    flex-direction: column;
+    position: relative; /* למיקום הכוכב מועדף */
+    min-height: 100px;
+}
+
+.inspiration-card:hover {
+    transform: scale(1.03);
+    box-shadow: var(--card-hover-shadow);
+    border-color: var(--primary-accent);
+}
+
+.card-content {
     display: flex;
     align-items: center;
     gap: 10px;
 }
-.category-icon { /* נוסיף את זה ב-JS */
-    font-size: 1.2em;
-}
-
-
-/* --- מיכל הכרטיסיות --- */
-.card-container {
-    display: grid;
-    /* טור אוטומטי שיתאים כרטיסיות ברוחב מינימלי של 200px */
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px; /* רווח בין הכרטיסיות */
-}
-
-/* --- כרטיסיית השראה --- */
-.inspiration-card {
-    background-color: #fff; /* היה כפול, אפשר להסיר אם הקטגוריה כבר לבנה */
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 15px;
-    cursor: pointer;
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, opacity 0.3s ease;
-    display: flex;
-    flex-direction: column; /* סידור פנימי אנכי */
-    min-height: 120px; /* גובה מינימלי לכרטיסיה */
-    box-sizing: border-box;
-}
-
-.inspiration-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 15px var(--card-hover-shadow);
-}
-
-.card-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-}
 
 .card-id {
-    background-color: var(--primary-color);
+    background-color: var(--secondary-accent); /* סגול */
     color: white;
     font-weight: bold;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
+    border-radius: 6px; /* מעט מרובע */
+    width: 30px;
+    height: 30px;
     display: inline-flex;
     justify-content: center;
     align-items: center;
     font-size: 0.9em;
-    flex-shrink: 0; /* למנוע התכווצות */
+    flex-shrink: 0;
 }
 
 .card-title {
     font-weight: 600;
-    color: #444;
-    font-size: 1.05em; /* מעט גדול יותר */
-    flex-grow: 1; /* תופס מקום פנוי */
-    margin: 0; /* איפוס שוליים */
+    color: var(--text-color-primary);
+    font-size: 1.0em;
+    line-height: 1.3;
+    margin: 0;
+    flex-grow: 1;
 }
 
-.card-favorite-indicator { /* אייקון כוכב קטן בכרטיסייה מועדפת */
-    color: var(--highlight-color);
-    font-size: 1.2em;
-    margin-left: 5px; /* או margin-right ב-ltr */
-    opacity: 0; /* מוסתר כברירת מחדל */
-    transition: opacity 0.3s;
+.card-favorite-indicator {
+    position: absolute;
+    top: 10px;
+    left: 10px; /* RTL */
+    color: var(--highlight-yellow);
+    font-size: 1.3em;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all var(--transition-speed) ease;
 }
 .inspiration-card.is-favorite .card-favorite-indicator {
-    opacity: 1; /* מוצג בכרטיסיה מועדפת */
+    opacity: 1;
+    transform: scale(1);
 }
+/* הסתרת מחוון מועדף אם הכרטיסיה מעומעמת */
+.inspiration-card.dimmed .card-favorite-indicator {
+    opacity: 0;
+}
+
 
 /* סגנונות לכרטיסיות מודגשות/מעומעמות */
 .inspiration-card.highlight {
-    border: 2px solid var(--primary-color); /* מסגרת הדגשה */
-    box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+    border: 2px solid var(--primary-accent);
+    transform: scale(1.02); /* הדגשה קלה */
 }
 .inspiration-card.dimmed {
-    opacity: 0.4;
+    opacity: 0.3;
     pointer-events: none;
-}
-/* הסרת הדגשה אם גם מעומעם */
-.inspiration-card.highlight.dimmed {
-    border: 1px solid var(--border-color);
+    transform: scale(0.98);
     box-shadow: none;
 }
+.inspiration-card.highlight.dimmed {
+     opacity: 0.3; /* עדיין מעומעם */
+     border: 1px solid var(--border-light); /* גבול רגיל */
+     transform: scale(0.98);
+}
 
 
-/* --- פאנל פרטים (דומה לקודם, עם התאמות עיצוב) --- */
+/* --- Detail Panel --- */
 #detail-panel {
     position: fixed;
     top: 0;
-    right: -420px; /* מתחיל מחוץ למסך, מעט רחב יותר */
-    width: 400px;
-    height: 100vh;
+    right: -100%; /* מתחיל לגמרי בחוץ */
+    width: clamp(320px, 40%, 500px); /* רוחב גמיש עם מינ/מקס */
+    height: 100%; /* 100vh היה יכול לגרום לבאגים במובייל */
     background-color: var(--panel-bg);
-    box-shadow: -5px 0 15px var(--panel-shadow);
-    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* אנימציה חלקה יותר */
+    box-shadow: var(--panel-shadow);
+    transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1); /* אנימציה משופרת */
     z-index: 200;
-    display: flex;
-    box-sizing: border-box;
-    padding: 25px;
-    padding-top: 50px; /* מקום לכפתור הסגירה */
+    border-radius: var(--panel-border-radius);
+    display: flex; /* מאפשר wrapper פנימי */
+    visibility: hidden; /* התחלה מוסתרת */
+    opacity: 0;
+    transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, visibility 0s 0.5s;
 }
 
 #detail-panel.visible {
     right: 0;
+    visibility: visible;
+    opacity: 1;
+    transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, visibility 0s 0s;
+}
+
+.panel-content-wrapper {
+    padding: 30px;
+    padding-top: 60px; /* מקום לכפתור סגירה */
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* למנוע גלישה */
+    display: flex; /* לאפשר לתוכן לגדול */
+    flex-direction: column;
 }
 
 #close-panel-btn {
     position: absolute;
-    top: 15px;
-    left: 20px; /* RTL */
-    background: none;
+    top: 20px;
+    left: 25px; /* RTL */
+    background: transparent;
     border: none;
-    color: #aaa;
-    font-size: 2.2em;
+    color: var(--text-color-secondary);
+    font-size: 2.5em;
     cursor: pointer;
     padding: 0;
     line-height: 1;
-    transition: color 0.3s;
+    transition: color var(--transition-speed) ease, transform 0.2s ease;
 }
 #close-panel-btn:hover {
-    color: var(--primary-color);
+    color: var(--primary-accent);
+    transform: rotate(90deg);
 }
-
 
 #detail-content {
-    overflow-y: auto;
-    width: 100%;
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: var(--primary-color) var(--border-color); /* Firefox */
+    overflow-y: auto; /* גלילה רק לתוכן הפנימי */
+    flex-grow: 1; /* תופס את הגובה הזמין */
+    padding-right: 10px; /* מרווח לסרגל גלילה */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-accent) var(--bg-gradient-start);
 }
-/* סגנון סרגל גלילה ל-Chrome/Safari/Edge */
-#detail-content::-webkit-scrollbar {
-    width: 8px;
-}
-#detail-content::-webkit-scrollbar-track {
-    background: var(--border-color);
-    border-radius: 4px;
-}
-#detail-content::-webkit-scrollbar-thumb {
-    background-color: var(--primary-color);
-    border-radius: 4px;
-    border: 2px solid var(--border-color); /* יוצר מרווח */
-}
+#detail-content::-webkit-scrollbar { width: 6px; }
+#detail-content::-webkit-scrollbar-track { background: var(--bg-gradient-start); border-radius: 3px;}
+#detail-content::-webkit-scrollbar-thumb { background-color: var(--primary-accent); border-radius: 3px;}
 
-
+/* סגנונות תוכן בפאנל - דומים לקודם עם שיפורים קלים */
 #detail-content h2 {
-    font-size: 1.5em;
+    font-size: 1.8em;
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--primary-accent);
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    line-height: 1.3;
 }
-
 #detail-content .category {
-    font-size: 1em;
-    color: #555;
-    margin-bottom: 15px;
+    font-size: 1.1em;
+    color: var(--text-color-secondary);
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+#detail-content .category strong {
     font-weight: 600;
 }
 #detail-content .category span {
-    font-weight: 700; /* שם הקטגוריה מודגש */
-    /* הצבע ישתנה ע"י JS */
+    font-weight: 600;
+    /* הצבע יגיע מה-JS, או צבע קבוע אם אין התאמה */
 }
-
 #detail-content p {
-    line-height: 1.7; /* ריווח שורות נעים */
-    margin-bottom: 18px;
-    color: #444;
-}
-
-#detail-content .example {
-    background-color: #eef5fc; /* רקע תכלת בהיר לדוגמה */
-    padding: 15px;
-    border-radius: 6px;
     margin-bottom: 20px;
-    border-left: 4px solid var(--primary-color);
-    color: #333;
+    color: var(--text-color-primary);
+    font-size: 1.05em;
+}
+#detail-content .example {
+    background-color: #f8f9fa; /* רקע אפרפר בהיר מאוד */
+    padding: 18px;
+    border-radius: 8px;
+    margin: 25px 0;
+    border-left: 5px solid var(--secondary-accent); /* הדגשה סגולה */
+    color: #495057;
+    font-style: italic;
 }
 #detail-content .example strong {
-    color: var(--primary-color);
-    font-weight: 700;
+    color: var(--secondary-accent);
+    font-weight: 600;
+    font-style: normal;
 }
-#detail-content .example span {
-    /* אין צורך בסגנון מיוחד כרגע */
-}
-
-
 #related-container {
-    margin-top: 25px;
-    border-top: 1px solid var(--border-color);
-    padding-top: 20px;
+    margin-top: 30px;
+    border-top: 1px solid var(--border-light);
+    padding-top: 25px;
 }
 #related-container p strong {
     font-weight: 600;
-    color: #555;
+    color: var(--text-color-secondary);
+    font-size: 1.1em;
 }
-
 #related-list {
     list-style: none;
     padding: 0;
-    margin: 10px 0 0 0;
+    margin: 15px 0 0 0;
 }
 #related-list li {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 #related-list a {
-    color: var(--primary-color);
+    color: var(--primary-accent);
     text-decoration: none;
     cursor: pointer;
-    transition: color 0.3s, text-decoration 0.3s;
-    font-weight: 400; /* לא מודגש מדי */
+    transition: color var(--transition-speed) ease;
+    font-weight: 400;
+    display: inline-block; /* מאפשר border-bottom */
+    position: relative;
+    padding-bottom: 2px;
+}
+#related-list a::after { /* קו תחתון באנימציה */
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    display: block;
+    margin-top: 2px;
+    right: 0; /* RTL */
+    background: var(--primary-accent);
+    transition: width var(--transition-speed) ease;
+}
+#related-list a:hover::after {
+    width: 100%;
+    left: 0; /* RTL */
 }
 #related-list a:hover {
-    color: #2a6ebf; /* כחול כהה יותר */
-    text-decoration: underline;
+    color: var(--primary-accent); /* הצבע נשאר אותו דבר */
 }
 
 #favorite-btn {
-    display: flex; /* כדי שהכוכב יהיה לצד הטקסט */
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px; /* רווח בין הכוכב לטקסט */
+    gap: 10px;
     width: 100%;
-    padding: 12px 15px;
-    margin-top: 30px;
-    background-color: var(--button-bg);
+    padding: 14px 20px;
+    margin-top: 35px;
+    background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1.1em;
+    font-size: 1.15em;
     font-weight: 600;
-    transition: background-color 0.3s, transform 0.1s;
-    font-family: 'Assistant', sans-serif;
+    transition: all var(--transition-speed) ease;
+    font-family: var(--font-primary);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
-
 #favorite-btn:hover {
-    background-color: var(--button-hover-bg);
+    background: linear-gradient(135deg, #2980b9, #8e44ad); /* גוונים כהים יותר */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
 #favorite-btn:active {
-     transform: scale(0.98); /* אפקט לחיצה קל */
+     transform: translateY(0px) scale(0.98);
+     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
-
-
 #favorite-btn.is-favorite {
-    background-color: var(--highlight-color);
-    color: #444;
+    background: var(--highlight-yellow);
+    color: var(--text-color-primary);
+    box-shadow: 0 4px 10px rgba(241, 196, 15, 0.3);
 }
 #favorite-btn.is-favorite:hover {
-    background-color: #f5e01a; /* גוון מעט כהה יותר */
+    background: #eac10b; /* גוון כהה יותר של צהוב */
+     box-shadow: 0 6px 15px rgba(241, 196, 15, 0.4);
 }
+
+/* Placeholder for loading state in panel */
+.detail-placeholder {
+    background-color: #e0e6ed;
+    border-radius: 4px;
+    min-height: 1.2em; /* גובה מינימלי */
+    animation: pulse-bg 1.5s infinite ease-in-out;
+    color: transparent !important; /* הסתרת טקסט אם קיים */
+}
+#detail-content h2.detail-placeholder { min-height: 1.5em; width: 70%; margin-bottom: 15px; }
+#detail-content p.detail-placeholder { min-height: 1.2em; width: 90%; margin-bottom: 10px; }
+#detail-content p.detail-placeholder:last-of-type { width: 60%; }
+#detail-content .example.detail-placeholder { min-height: 5em; }
+#detail-content #related-container.detail-placeholder { min-height: 3em; }
+#detail-content #favorite-btn.detail-placeholder { min-height: 48px; background: #e0e6ed !important; box-shadow: none !important;}
+
+@keyframes pulse-bg {
+    0% { background-color: #e0e6ed; }
+    50% { background-color: #d1d8e0; }
+    100% { background-color: #e0e6ed; }
+}
+
 
 /* --- Footer --- */
 footer {
     text-align: center;
-    padding: 15px;
-    background-color: var(--footer-bg);
-    color: var(--footer-text);
+    padding: 20px;
+    background-color: transparent; /* אין רקע מיוחד */
+    color: var(--text-color-secondary);
     font-size: 0.9em;
-    margin-top: 40px; /* רווח מהתוכן הראשי */
+    margin-top: 40px;
+    border-top: 1px solid var(--border-light);
 }
 
-/* --- Media Queries for Responsiveness --- */
+
+/* --- Media Queries --- */
+@media (max-width: 1200px) {
+    .header-content, #studio-dashboard {
+        max-width: 1100px;
+        padding: 0 20px;
+    }
+     #studio-dashboard { padding: 30px 20px; gap: 25px; }
+}
+
+@media (max-width: 992px) {
+    #studio-dashboard {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    header h1 { font-size: 1.7em; }
+    .logo-icon { font-size: 1.5em;}
+    #search-input { min-width: 220px; }
+}
+
 @media (max-width: 768px) {
-    header h1 {
-        font-size: 1.4em;
-    }
-    .controls {
-        gap: 10px;
-    }
-    #search-input {
-        min-width: 150px;
-        padding: 8px 12px;
-    }
-    header button {
-        width: 40px;
-        height: 40px;
-        font-size: 1.4em;
-    }
-    .card-container {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 15px;
-    }
-    #detail-panel {
-        width: 90%; /* רחב יותר במובייל */
-        right: -100%; /* מתחיל לגמרי בחוץ */
-    }
-     #detail-panel.visible {
-        right: 0;
-    }
+     :root { --header-height: 65px; }
+     header h1 { font-size: 1.4em; }
+     .logo-icon { font-size: 1.3em;}
+     .controls { gap: 10px; }
+     #search-input { min-width: auto; flex-grow: 1; margin-left: 10px;}
+     .controls button { width: 42px; height: 42px; font-size: 1.4em;}
+     #studio-dashboard { padding: 20px 15px; gap: 20px; }
+     .category-zone { padding: 20px; }
+     .category-title { font-size: 1.3em; }
+     .card-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;}
+     .inspiration-card { padding: 12px; min-height: 90px;}
+     .card-id { width: 26px; height: 26px; font-size: 0.8em; }
+     .card-title { font-size: 0.95em; }
+     #detail-panel { width: 85%; }
+     .panel-content-wrapper { padding: 20px; padding-top: 50px; }
+     #close-panel-btn { top: 15px; left: 20px; font-size: 2.2em; }
+     #detail-content h2 { font-size: 1.6em; }
+     #detail-content p, #detail-content .category { font-size: 1em; }
+     #favorite-btn { font-size: 1.1em; padding: 12px 15px; }
+     footer { font-size: 0.85em; padding: 15px;}
 }
 
 @media (max-width: 480px) {
-     .header-content {
-        flex-direction: column;
-        height: auto;
-        padding: 10px 0;
-    }
-    header h1 {
-        margin-bottom: 10px;
-    }
-    .controls {
-        width: 100%;
-        justify-content: space-between; /* פיזור השליטה */
-    }
-    #search-input {
-        flex-grow: 1; /* תופס את רוב הרוחב */
-        min-width: auto;
-    }
-    .card-container {
-        grid-template-columns: 1fr; /* עמודה אחת */
-        gap: 15px;
-    }
-     #detail-panel {
-        width: 100%;
-        right: -100%;
-        box-shadow: none; /* פחות צל במסך מלא */
-    }
+    .header-content { flex-direction: column; height: auto; padding: 10px 15px; }
+    header h1 { margin-bottom: 10px; text-align: center; font-size: 1.5em; }
+    .controls { width: 100%; }
+    #studio-dashboard { padding: 15px; gap: 15px; grid-template-columns: 1fr; } /* עמודה אחת */
+    .category-title { font-size: 1.2em; }
+    .card-grid { grid-template-columns: 1fr; } /* עמודה אחת */
+    #detail-panel { width: 100%; border-radius: 0; box-shadow: none; }
+     .panel-content-wrapper { padding: 15px; padding-top: 45px; }
+     #close-panel-btn { top: 10px; left: 15px; font-size: 2em; }
+     #detail-content h2 { font-size: 1.5em; }
 }
 
-/* סגנון צבעי קטגוריות - מגדיר את הרקע של הכותרת/הגבול */
-/* צריך להוסיף כלל לכל צבע שהגדרנו */
-.category-section[data-category-color="1"] { border-top-color: var(--cat-color-1); }
-.category-section[data-category-color="2"] { border-top-color: var(--cat-color-2); }
-.category-section[data-category-color="3"] { border-top-color: var(--cat-color-3); }
-.category-section[data-category-color="4"] { border-top-color: var(--cat-color-4); }
-.category-section[data-category-color="5"] { border-top-color: var(--cat-color-5); }
-.category-section[data-category-color="6"] { border-top-color: var(--cat-color-6); }
-.category-section[data-category-color="7"] { border-top-color: var(--cat-color-7); }
-.category-section[data-category-color="8"] { border-top-color: var(--cat-color-8); }
+/* סגנון צבעי קטגוריות - צבע הגבול העליון וצבע הכותרת */
+/* לולאה ב-JS תקבע את המשתנים האלה */
+/* .category-zone[data-category-color="1"] { --category-color: var(--cat-color-1); } */
+/* ... */
