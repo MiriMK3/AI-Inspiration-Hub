@@ -1,322 +1,493 @@
 /* --- הגדרות בסיס ומשתנים --- */
 :root {
-    --bg-color: #0a0a1f; /* כחול-שחור עמוק */
-    --star-color: #ffffff;
-    --star-glow: #add8e6; /* תכלת בהיר לזוהר */
-    --panel-bg: rgba(20, 20, 50, 0.95); /* רקע פאנל חצי שקוף */
-    --text-color: #f0f0f0;
-    --header-bg: rgba(10, 10, 30, 0.8);
-    --highlight-color: #f0e68c; /* צהבהב להדגשה */
-    --button-bg: #303060;
-    --button-hover-bg: #505080;
+    --bg-color: #f4f7f9; /* רקע בהיר ונקי */
+    --text-color: #333;
+    --header-bg: #ffffff;
+    --header-shadow: rgba(0, 0, 0, 0.1);
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0, 0, 0, 0.08);
+    --card-hover-shadow: rgba(0, 0, 0, 0.15);
+    --panel-bg: #ffffff;
+    --panel-shadow: rgba(0, 0, 0, 0.2);
+    --primary-color: #4a90e2; /* כחול נעים */
+    --secondary-color: #50e3c2; /* טורקיז להדגשות */
+    --highlight-color: #f8e71c; /* צהוב למועדפים */
+    --border-color: #e1e8ed;
+    --footer-bg: #e1e8ed;
+    --footer-text: #667580;
 
-    /* צבעי קטגוריות (דוגמה - ניתן להרחיב) */
-    --cat-color-1: #ffadad; /* אדמדם */
-    --cat-color-2: #ffd6a5; /* כתמתם */
-    --cat-color-3: #fdffb6; /* צהבהב */
-    --cat-color-4: #caffbf; /* ירקרק */
-    --cat-color-5: #9bf6ff; /* תכלת */
-    --cat-color-6: #a0c4ff; /* כחול */
-    --cat-color-7: #bdb2ff; /* סגלגל */
-    --cat-color-8: #ffc6ff; /* ורדרד */
-    /* ... הוסף עוד לפי מספר הקטגוריות */
+    /* צבעי קטגוריות (גוונים בהירים יותר) */
+    --cat-color-1: #ffeaeb; /* אדמדם בהיר */
+    --cat-color-2: #fff3e0; /* כתמתם בהיר */
+    --cat-color-3: #fffde7; /* צהבהב בהיר */
+    --cat-color-4: #e8f5e9; /* ירקרק בהיר */
+    --cat-color-5: #e0f7fa; /* תכלת בהיר */
+    --cat-color-6: #e3f2fd; /* כחול בהיר */
+    --cat-color-7: #ede7f6; /* סגלגל בהיר */
+    --cat-color-8: #fce4ec; /* ורדרד בהיר */
+    /* ניתן להוסיף עוד צבעים */
 }
 
 body {
-    font-family: 'Arial', sans-serif; /* החלף בגופן מועדף אם יש */
+    font-family: 'Assistant', sans-serif; /* גופן עברי נקי וקריא */
     margin: 0;
     background-color: var(--bg-color);
     color: var(--text-color);
-    overflow: hidden; /* מונע גלילה של כל הדף */
-    position: relative; /* נדרש לרקע הכוכבים */
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
 }
 
-/* --- רקע כוכבים זז (אנימציה פשוטה) --- */
-@keyframes move-stars {
-    from { background-position: 0 0; }
-    to { background-position: -10000px 5000px; } /* מספרים גדולים לתנועה איטית וארוכה */
-}
-
-#background-stars {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 200%; /* גדול מהמסך כדי שהתנועה תיראה טבעית */
-    height: 200%;
-    background-image: radial-gradient(2px 2px at 20px 30px, var(--star-color), rgba(255,255,255,0)),
-                      radial-gradient(2px 2px at 40px 70px, #aaa, rgba(255,255,255,0)),
-                      radial-gradient(3px 3px at 50px 160px, #fff, rgba(255,255,255,0)),
-                      radial-gradient(2px 2px at 90px 40px, #ddd, rgba(255,255,255,0)),
-                      radial-gradient(3px 3px at 130px 80px, #fff, rgba(255,255,255,0)),
-                      radial-gradient(2px 2px at 160px 120px, #bbb, rgba(255,255,255,0));
-    background-repeat: repeat;
-    background-size: 200px 200px; /* גודל התבנית שחוזרת */
-    animation: move-stars 200s linear infinite; /* אנימציה אינסופית ואיטית */
-    z-index: -1; /* מאחורי הכל */
-    opacity: 0.6;
-}
-
-
 /* --- Header --- */
 header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
     background-color: var(--header-bg);
-    padding: 10px 20px;
+    box-shadow: 0 2px 4px var(--header-shadow);
+    position: sticky; /* נשאר למעלה בגלילה */
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    padding: 0 20px; /* ריווח פנימי לצדדים */
+    box-sizing: border-box;
+}
+
+.header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    z-index: 100;
-    box-sizing: border-box;
+    max-width: 1400px; /* רוחב מקסימלי לתוכן */
+    margin: 0 auto; /* ממורכז */
+    height: 70px; /* גובה קבוע */
 }
 
 header h1 {
     margin: 0;
-    font-size: 1.6em;
-    color: #e0e0ff;
-    text-shadow: 0 0 5px var(--star-glow);
+    font-size: 1.8em; /* גודל כותרת */
+    font-weight: 700; /* הדגשה */
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px; /* רווח בין האייקון לטקסט */
+}
+.logo-icon {
+    font-size: 1.5em; /* הגדלת אייקון הנורה */
 }
 
 .controls {
     display: flex;
     gap: 15px;
+    align-items: center;
 }
 
 #search-input {
-    padding: 8px 12px;
+    padding: 10px 15px;
     border-radius: 20px;
-    border: 1px solid var(--button-bg);
-    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    background-color: #fff;
     color: var(--text-color);
-    min-width: 200px;
-    transition: background-color 0.3s;
+    min-width: 250px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    font-family: 'Assistant', sans-serif;
 }
 #search-input:focus {
-    background-color: rgba(255, 255, 255, 0.2);
     outline: none;
-    border-color: var(--star-glow);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
 header button {
-    background-color: var(--button-bg);
-    color: var(--text-color);
+    background-color: transparent;
+    color: #555;
     border: none;
-    border-radius: 50%; /* כפתור עגול */
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 1.2em;
-    width: 40px;
-    height: 40px;
+    font-size: 1.6em; /* גודל האמוג'י */
+    width: 45px;
+    height: 45px;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: background-color 0.3s, transform 0.2s;
 }
 header button:hover {
-    background-color: var(--button-hover-bg);
+    background-color: rgba(0,0,0,0.05);
     transform: scale(1.1);
 }
-
-/* --- אזור הערפילית והכוכבים --- */
-#nebula-container {
-    position: relative;
-    width: 100%;
-    height: calc(100vh - 60px); /* גובה פחות ה-header */
-    top: 60px; /* מתחת ל-header */
-    isolation: isolate; /* מונע מ-z-index של הכוכבים לברוח */
+header button.active { /* סגנון לכפתור מועדפים פעיל */
+    background-color: var(--highlight-color);
+    color: #333;
 }
 
-.star {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background-color: var(--star-color);
-    border-radius: 50%;
+
+/* --- אזור הסטודיו הראשי --- */
+#studio-layout {
+    padding: 30px 20px; /* ריווח פנימי */
+    max-width: 1400px; /* רוחב מקסימלי */
+    margin: 0 auto; /* ממורכז */
+    flex-grow: 1; /* תופס את שאר הגובה */
+    box-sizing: border-box;
+}
+
+.loading {
+    text-align: center;
+    font-size: 1.2em;
+    color: #888;
+    padding: 50px;
+}
+
+/* --- קטגוריה --- */
+.category-section {
+    margin-bottom: 40px;
+    background-color: var(--card-bg); /* רקע לבן לאזור הקטגוריה */
+    border-radius: 8px;
+    box-shadow: 0 3px 10px var(--card-shadow);
+    padding: 20px;
+    transition: opacity 0.5s ease-in-out; /* אנימצית כניסה */
+    border-top: 4px solid; /* קו צבעוני עליון, הצבע יקבע ב-JS */
+}
+
+.category-section h2 {
+    font-size: 1.6em;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.category-icon { /* נוסיף את זה ב-JS */
+    font-size: 1.2em;
+}
+
+
+/* --- מיכל הכרטיסיות --- */
+.card-container {
+    display: grid;
+    /* טור אוטומטי שיתאים כרטיסיות ברוחב מינימלי של 200px */
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px; /* רווח בין הכרטיסיות */
+}
+
+/* --- כרטיסיית השראה --- */
+.inspiration-card {
+    background-color: #fff; /* היה כפול, אפשר להסיר אם הקטגוריה כבר לבנה */
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
     cursor: pointer;
-    box-shadow: 0 0 8px 2px var(--star-glow); /* זוהר */
-    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
-    animation: pulse 2s infinite ease-in-out alternate;
-    display: flex; /* למרכז את המספר */
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, opacity 0.3s ease;
+    display: flex;
+    flex-direction: column; /* סידור פנימי אנכי */
+    min-height: 120px; /* גובה מינימלי לכרטיסיה */
+    box-sizing: border-box;
+}
+
+.inspiration-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px var(--card-hover-shadow);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.card-id {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
     justify-content: center;
     align-items: center;
-    font-size: 8px; /* גודל קטן למספר */
-    color: #333; /* צבע המספר */
-    font-weight: bold;
-    opacity: 0.9; /* מעט שקוף */
+    font-size: 0.9em;
+    flex-shrink: 0; /* למנוע התכווצות */
 }
 
-.star:hover {
-    transform: scale(1.8);
-    box-shadow: 0 0 15px 5px var(--star-glow);
-    z-index: 10; /* מעל כוכבים אחרים בריחוף */
-    opacity: 1;
+.card-title {
+    font-weight: 600;
+    color: #444;
+    font-size: 1.05em; /* מעט גדול יותר */
+    flex-grow: 1; /* תופס מקום פנוי */
+    margin: 0; /* איפוס שוליים */
 }
 
-/* --- אנימציית פולס לכוכבים --- */
-@keyframes pulse {
-    from { transform: scale(0.9); box-shadow: 0 0 6px 1px var(--star-glow); }
-    to { transform: scale(1.1); box-shadow: 0 0 10px 3px var(--star-glow); }
+.card-favorite-indicator { /* אייקון כוכב קטן בכרטיסייה מועדפת */
+    color: var(--highlight-color);
+    font-size: 1.2em;
+    margin-left: 5px; /* או margin-right ב-ltr */
+    opacity: 0; /* מוסתר כברירת מחדל */
+    transition: opacity 0.3s;
+}
+.inspiration-card.is-favorite .card-favorite-indicator {
+    opacity: 1; /* מוצג בכרטיסיה מועדפת */
 }
 
-/* סגנונות לכוכבים מודגשים (חיפוש/מועדפים) */
-.star.highlight {
-    box-shadow: 0 0 15px 5px var(--highlight-color);
-    transform: scale(1.5);
-    border: 2px solid var(--highlight-color);
-    opacity: 1;
-    animation: none; /* לבטל פולס רגיל */
-    animation: highlight-pulse 1s infinite ease-in-out alternate;
+/* סגנונות לכרטיסיות מודגשות/מעומעמות */
+.inspiration-card.highlight {
+    border: 2px solid var(--primary-color); /* מסגרת הדגשה */
+    box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
 }
-@keyframes highlight-pulse {
-     from { transform: scale(1.4); box-shadow: 0 0 12px 4px var(--highlight-color); }
-    to { transform: scale(1.6); box-shadow: 0 0 18px 6px var(--highlight-color); }
+.inspiration-card.dimmed {
+    opacity: 0.4;
+    pointer-events: none;
 }
-
-
-/* סגנונות לכוכבים מעומעמים (בזמן חיפוש) */
-.star.dimmed {
-    opacity: 0.2;
-    pointer-events: none; /* למנוע לחיצה כשהוא מעומעם */
+/* הסרת הדגשה אם גם מעומעם */
+.inspiration-card.highlight.dimmed {
+    border: 1px solid var(--border-color);
+    box-shadow: none;
 }
 
-/* --- פאנל פרטים --- */
+
+/* --- פאנל פרטים (דומה לקודם, עם התאמות עיצוב) --- */
 #detail-panel {
     position: fixed;
     top: 0;
-    right: -400px; /* מתחיל מחוץ למסך מימין (בגלל dir=rtl) */
-    width: 380px;
+    right: -420px; /* מתחיל מחוץ למסך, מעט רחב יותר */
+    width: 400px;
     height: 100vh;
     background-color: var(--panel-bg);
-    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.6);
-    transition: right 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* אנימציית החלקה */
+    box-shadow: -5px 0 15px var(--panel-shadow);
+    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* אנימציה חלקה יותר */
     z-index: 200;
-    display: flex; /* כדי למקם את כפתור הסגירה */
+    display: flex;
     box-sizing: border-box;
-    padding: 20px;
-    padding-top: 40px; /* מקום לכפתור הסגירה */
+    padding: 25px;
+    padding-top: 50px; /* מקום לכפתור הסגירה */
 }
 
 #detail-panel.visible {
-    right: 0; /* מחליק פנימה */
+    right: 0;
 }
 
 #close-panel-btn {
     position: absolute;
-    top: 10px;
-    left: 15px; /* מיקום הפוך בגלל rtl */
+    top: 15px;
+    left: 20px; /* RTL */
     background: none;
     border: none;
     color: #aaa;
-    font-size: 2em;
+    font-size: 2.2em;
     cursor: pointer;
     padding: 0;
     line-height: 1;
+    transition: color 0.3s;
 }
 #close-panel-btn:hover {
-    color: #fff;
+    color: var(--primary-color);
 }
 
 
 #detail-content {
-    overflow-y: auto; /* גלילה אם התוכן ארוך */
+    overflow-y: auto;
     width: 100%;
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--primary-color) var(--border-color); /* Firefox */
+}
+/* סגנון סרגל גלילה ל-Chrome/Safari/Edge */
+#detail-content::-webkit-scrollbar {
+    width: 8px;
+}
+#detail-content::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+#detail-content::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    border: 2px solid var(--border-color); /* יוצר מרווח */
 }
 
+
 #detail-content h2 {
-    color: #ddeeff;
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--primary-color);
     margin-top: 0;
     margin-bottom: 15px;
-    text-shadow: 0 0 3px var(--star-glow);
 }
 
 #detail-content .category {
-    font-size: 0.9em;
-    color: #bbb;
-    margin-bottom: 10px;
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 15px;
+    font-weight: 600;
 }
 #detail-content .category span {
-    font-weight: bold;
+    font-weight: 700; /* שם הקטגוריה מודגש */
     /* הצבע ישתנה ע"י JS */
 }
 
 #detail-content p {
-    line-height: 1.6;
-    margin-bottom: 15px;
+    line-height: 1.7; /* ריווח שורות נעים */
+    margin-bottom: 18px;
+    color: #444;
 }
 
 #detail-content .example {
-    background-color: rgba(255, 255, 255, 0.05);
-    padding: 10px;
-    border-radius: 5px;
-    font-style: italic;
-    border-left: 3px solid var(--star-glow); /* קו בצד */
+    background-color: #eef5fc; /* רקע תכלת בהיר לדוגמה */
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-color);
+    color: #333;
 }
 #detail-content .example strong {
-    font-style: normal;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+#detail-content .example span {
+    /* אין צורך בסגנון מיוחד כרגע */
 }
 
+
 #related-container {
-    margin-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    padding-top: 15px;
+    margin-top: 25px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+}
+#related-container p strong {
+    font-weight: 600;
+    color: #555;
 }
 
 #related-list {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 10px 0 0 0;
 }
 #related-list li {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 #related-list a {
-    color: #a0c4ff; /* כחול בהיר */
+    color: var(--primary-color);
     text-decoration: none;
     cursor: pointer;
-    transition: color 0.3s;
+    transition: color 0.3s, text-decoration 0.3s;
+    font-weight: 400; /* לא מודגש מדי */
 }
 #related-list a:hover {
-    color: #fff;
+    color: #2a6ebf; /* כחול כהה יותר */
     text-decoration: underline;
 }
 
 #favorite-btn {
-    display: block; /* כפתור ברוחב מלא */
+    display: flex; /* כדי שהכוכב יהיה לצד הטקסט */
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* רווח בין הכוכב לטקסט */
     width: 100%;
-    padding: 12px;
-    margin-top: 25px;
+    padding: 12px 15px;
+    margin-top: 30px;
     background-color: var(--button-bg);
-    color: var(--text-color);
+    color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 1em;
-    font-weight: bold;
-    transition: background-color 0.3s;
+    font-size: 1.1em;
+    font-weight: 600;
+    transition: background-color 0.3s, transform 0.1s;
+    font-family: 'Assistant', sans-serif;
 }
 
 #favorite-btn:hover {
     background-color: var(--button-hover-bg);
 }
+#favorite-btn:active {
+     transform: scale(0.98); /* אפקט לחיצה קל */
+}
+
 
 #favorite-btn.is-favorite {
     background-color: var(--highlight-color);
-    color: #333; /* טקסט כהה על רקע בהיר */
+    color: #444;
 }
 #favorite-btn.is-favorite:hover {
-    background-color: #e0d67c; /* גוון מעט כהה יותר של ההיילייט */
+    background-color: #f5e01a; /* גוון מעט כהה יותר */
 }
 
-/* --- סגנון צבעי קטגוריות (דוגמה) --- */
-.star[data-category-color="1"] { background-color: var(--cat-color-1); box-shadow: 0 0 8px 2px var(--cat-color-1); }
-.star[data-category-color="2"] { background-color: var(--cat-color-2); box-shadow: 0 0 8px 2px var(--cat-color-2); }
-.star[data-category-color="3"] { background-color: var(--cat-color-3); box-shadow: 0 0 8px 2px var(--cat-color-3); color: #555; } /* טקסט כהה לכוכב בהיר */
-.star[data-category-color="4"] { background-color: var(--cat-color-4); box-shadow: 0 0 8px 2px var(--cat-color-4); color: #555; } /* טקסט כהה לכוכב בהיר */
-.star[data-category-color="5"] { background-color: var(--cat-color-5); box-shadow: 0 0 8px 2px var(--cat-color-5); color: #555; } /* טקסט כהה לכוכב בהיר */
-.star[data-category-color="6"] { background-color: var(--cat-color-6); box-shadow: 0 0 8px 2px var(--cat-color-6); }
-.star[data-category-color="7"] { background-color: var(--cat-color-7); box-shadow: 0 0 8px 2px var(--cat-color-7); }
-.star[data-category-color="8"] { background-color: var(--cat-color-8); box-shadow: 0 0 8px 2px var(--cat-color-8); color: #555; } /* טקסט כהה לכוכב בהיר */
-/* הוסף כללים לכל הצבעים שהגדרת ב-root */
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 15px;
+    background-color: var(--footer-bg);
+    color: var(--footer-text);
+    font-size: 0.9em;
+    margin-top: 40px; /* רווח מהתוכן הראשי */
+}
+
+/* --- Media Queries for Responsiveness --- */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.4em;
+    }
+    .controls {
+        gap: 10px;
+    }
+    #search-input {
+        min-width: 150px;
+        padding: 8px 12px;
+    }
+    header button {
+        width: 40px;
+        height: 40px;
+        font-size: 1.4em;
+    }
+    .card-container {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+    }
+    #detail-panel {
+        width: 90%; /* רחב יותר במובייל */
+        right: -100%; /* מתחיל לגמרי בחוץ */
+    }
+     #detail-panel.visible {
+        right: 0;
+    }
+}
+
+@media (max-width: 480px) {
+     .header-content {
+        flex-direction: column;
+        height: auto;
+        padding: 10px 0;
+    }
+    header h1 {
+        margin-bottom: 10px;
+    }
+    .controls {
+        width: 100%;
+        justify-content: space-between; /* פיזור השליטה */
+    }
+    #search-input {
+        flex-grow: 1; /* תופס את רוב הרוחב */
+        min-width: auto;
+    }
+    .card-container {
+        grid-template-columns: 1fr; /* עמודה אחת */
+        gap: 15px;
+    }
+     #detail-panel {
+        width: 100%;
+        right: -100%;
+        box-shadow: none; /* פחות צל במסך מלא */
+    }
+}
+
+/* סגנון צבעי קטגוריות - מגדיר את הרקע של הכותרת/הגבול */
+/* צריך להוסיף כלל לכל צבע שהגדרנו */
+.category-section[data-category-color="1"] { border-top-color: var(--cat-color-1); }
+.category-section[data-category-color="2"] { border-top-color: var(--cat-color-2); }
+.category-section[data-category-color="3"] { border-top-color: var(--cat-color-3); }
+.category-section[data-category-color="4"] { border-top-color: var(--cat-color-4); }
+.category-section[data-category-color="5"] { border-top-color: var(--cat-color-5); }
+.category-section[data-category-color="6"] { border-top-color: var(--cat-color-6); }
+.category-section[data-category-color="7"] { border-top-color: var(--cat-color-7); }
+.category-section[data-category-color="8"] { border-top-color: var(--cat-color-8); }
