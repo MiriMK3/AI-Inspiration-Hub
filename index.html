@@ -3,45 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>סטודיו ההשראה ל-AI בלמידה</title>
-    <link rel="stylesheet" href="style.css">
+    <title>סטודיו ההשראה ל-AI בלמידה ✨</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">  </head>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💡</text></svg>"> <!-- Favicon פשוט -->
+</head>
 <body>
-    <header>
-        <div class="header-content">
-            <h1><span class="logo-icon">💡</span> סטודיו ההשראה ל-AI בלמידה</h1>
-            <div class="controls">
-                <input type="search" id="search-input" placeholder="חיפוש שימוש...">
-                <button id="favorites-toggle-btn" title="הצג/הסתר מועדפים">⭐</button>
+    <div id="app-container">
+        <header>
+            <div class="header-content">
+                <h1><span class="logo-icon" aria-hidden="true">💡</span> סטודיו ההשראה ל-AI בלמידה</h1>
+                <div class="controls">
+                    <input type="search" id="search-input" placeholder="חיפוש לפי מילה, מספר או קטגוריה..." aria-label="חיפוש שימוש">
+                    <button id="favorites-toggle-btn" title="הצג מועדפים בלבד" aria-label="הצג מועדפים בלבד">⭐</button>
+                </div>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <main id="studio-layout">
-        <p id="loading-message" class="loading">טוען את הסטודיו...</p>
-        <!-- הקטגוריות והכרטיסיות יתווספו כאן על ידי JavaScript -->
-    </main>
+        <main id="studio-dashboard">
+            <p id="loading-message" class="loading-message">טוען את הסטודיו...</p>
+            <!-- אזורי הקטגוריות יתווספו כאן על ידי JavaScript -->
+        </main>
 
-    <aside id="detail-panel">
-        <button id="close-panel-btn" title="סגור">×</button>
-        <div id="detail-content">
-            <h2 id="detail-title"></h2>
-            <p class="category"><strong>קטגוריה:</strong> <span id="detail-category"></span></p>
-            <p id="detail-description"></p>
-            <p class="example"><strong>דוגמה:</strong> <span id="detail-example"></span></p>
-            <div id="related-container">
-                <p><strong>שימושים קשורים:</strong></p>
-                <ul id="related-list"></ul>
+        <footer>
+            נוצר באהבה ו-AI כדי לעורר השראה בלמידה | מבוסס על רשימת 100 השימושים
+        </footer>
+    </div>
+
+    <aside id="detail-panel" aria-hidden="true">
+        <div class="panel-content-wrapper">
+            <button id="close-panel-btn" title="סגור" aria-label="סגור פאנל פרטים">×</button>
+            <div id="detail-content">
+                {/* <!-- התוכן ימולא על ידי JavaScript --> */}
+                <h2 id="detail-title" class="detail-placeholder"></h2>
+                <p class="category detail-placeholder"><strong>קטגוריה:</strong> <span id="detail-category"></span></p>
+                <p id="detail-description" class="detail-placeholder"></p>
+                <p class="example detail-placeholder"><strong>דוגמה:</strong> <span id="detail-example"></span></p>
+                <div id="related-container" class="detail-placeholder">
+                    <p><strong>שימושים קשורים:</strong></p>
+                    <ul id="related-list"></ul>
+                </div>
+                 <button id="favorite-btn" class="detail-placeholder">⭐ הוסף למועדפים</button>
             </div>
-             <button id="favorite-btn">⭐ הוסף למועדפים</button>
         </div>
     </aside>
-
-    <footer>
-        נוצר בהשראת למידה מתמדת
-    </footer>
 
     <!-- קובץ נתונים (ללא שינוי) וסקריפט ראשי (חדש) -->
     <script src="data.js"></script>
